@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace EduFlow.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class InitialCreateClean : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -336,9 +336,8 @@ namespace EduFlow.Migrations
                 name: "LessonProgresses",
                 columns: table => new
                 {
-                    StudentId = table.Column<int>(type: "int", nullable: false),
+                    StudentId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     LessonId = table.Column<int>(type: "int", nullable: false),
-                    StudentId1 = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     ProgressPercent = table.Column<int>(type: "int", nullable: false),
                     IsCompleted = table.Column<bool>(type: "bit", nullable: false),
                     LastWatchedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
@@ -347,10 +346,11 @@ namespace EduFlow.Migrations
                 {
                     table.PrimaryKey("PK_LessonProgresses", x => new { x.StudentId, x.LessonId });
                     table.ForeignKey(
-                        name: "FK_LessonProgresses_AspNetUsers_StudentId1",
-                        column: x => x.StudentId1,
+                        name: "FK_LessonProgresses_AspNetUsers_StudentId",
+                        column: x => x.StudentId,
                         principalTable: "AspNetUsers",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.NoAction);
                     table.ForeignKey(
                         name: "FK_LessonProgresses_Lessons_LessonId",
                         column: x => x.LessonId,
@@ -417,11 +417,6 @@ namespace EduFlow.Migrations
                 name: "IX_LessonProgresses_LessonId",
                 table: "LessonProgresses",
                 column: "LessonId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_LessonProgresses_StudentId1",
-                table: "LessonProgresses",
-                column: "StudentId1");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Lessons_SectionId",

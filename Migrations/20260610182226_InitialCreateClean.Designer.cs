@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EduFlow.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260610130142_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20260610182226_InitialCreateClean")]
+    partial class InitialCreateClean
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -156,8 +156,8 @@ namespace EduFlow.Migrations
 
             modelBuilder.Entity("EduFlow.Entities.LessonProgress", b =>
                 {
-                    b.Property<int>("StudentId")
-                        .HasColumnType("int");
+                    b.Property<string>("StudentId")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<int>("LessonId")
                         .HasColumnType("int");
@@ -171,14 +171,9 @@ namespace EduFlow.Migrations
                     b.Property<int>("ProgressPercent")
                         .HasColumnType("int");
 
-                    b.Property<string>("StudentId1")
-                        .HasColumnType("nvarchar(450)");
-
                     b.HasKey("StudentId", "LessonId");
 
                     b.HasIndex("LessonId");
-
-                    b.HasIndex("StudentId1");
 
                     b.ToTable("LessonProgresses");
                 });
@@ -530,7 +525,9 @@ namespace EduFlow.Migrations
 
                     b.HasOne("EduFlow.Models.ApplicationUser", "Student")
                         .WithMany("Lessons")
-                        .HasForeignKey("StudentId1");
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Lesson");
 

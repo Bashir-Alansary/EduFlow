@@ -4,7 +4,7 @@ namespace EduFlow.Entities
 {
     public class LessonProgress
     {
-        public int StudentId { get; set; }
+        public string StudentId { get; set; }
         public ApplicationUser Student { get; set; } = null!;
 
         public int LessonId { get; set; }
