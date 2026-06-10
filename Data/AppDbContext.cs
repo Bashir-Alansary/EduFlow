@@ -12,6 +12,21 @@ namespace EduFlow.Data
             : base(options)
         {
         }
+        public DbSet<Course> Courses { get; set; }
+
+        public DbSet<Category> Categories { get; set; }
+
+        public DbSet<Section> Sections { get; set; }
+
+        public DbSet<Lesson> Lessons { get; set; }
+
+        public DbSet<Enrollment> Enrollments { get; set; }
+
+        public DbSet<Review> Reviews { get; set; }
+
+        public DbSet<Wishlist> Wishlists { get; set; }
+
+        public DbSet<LessonProgress> LessonProgresses { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -34,7 +49,7 @@ namespace EduFlow.Data
             builder.Entity<LessonProgress>()
                 .HasKey(lp => new { lp.StudentId, lp.LessonId });
 
-            // Configure one-to-many relationship between Student and Review
+            // Ensure a student can review a course only once
             builder.Entity<Review>()
                 .HasIndex(r  => new { r.StudentId, r.CourseId })
                 .IsUnique();
