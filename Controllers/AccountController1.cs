@@ -83,9 +83,10 @@ namespace EduFlow.Controllers
             return View(model);
         }
 
-        public IActionResult Logout()
+        public async Task<IActionResult> Logout()
         {
-            return RedirectToAction("Index", "Home");
+            await _signInManager.SignOutAsync();
+            return RedirectToAction("Login", "Account");
         }
 
         public IActionResult AccessDenied()
