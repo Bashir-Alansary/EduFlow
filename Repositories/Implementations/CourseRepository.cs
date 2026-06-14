@@ -1,0 +1,47 @@
+﻿using EduFlow.Data;
+using EduFlow.Entities;
+using EduFlow.Repositories.Interfaces;
+using Microsoft.EntityFrameworkCore;
+
+namespace EduFlow.Repositories.Implementations
+{
+    public class CourseRepository : ICourseRepository
+    {
+        private readonly AppDbContext _context;
+
+        public CourseRepository(AppDbContext context)
+        {
+            _context = context;
+        }
+
+        public async Task<List<Course>> GetAllAsync()
+        {
+            return await _context.Courses.ToListAsync();
+        }
+
+        public async Task<Course?> GetByIdAsync(int id)
+        {
+            return await _context.Courses
+                .FirstOrDefaultAsync(c => c.Id == id);
+        }
+
+        public async Task AddAsync(Course course)
+        {
+            await _context.Courses.AddAsync(course);
+            await _context.SaveChangesAsync();
+        }
+
+        public void Update(Course course)
+        {
+            _context.Courses.Update(course);
+            _context.SaveChanges();
+        }
+
+        public void Delete(Course course)
+        {
+            _context.Courses.Remove(course);
+            _context.SaveChanges();
+        }
+
+    }
+}
