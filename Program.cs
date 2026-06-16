@@ -9,13 +9,13 @@ namespace EduFlow
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
-
+            builder.Services.AddScoped<DbSeeder>();
 
             builder.Services.AddDbContext<AppDbContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("CS")));
@@ -23,6 +23,7 @@ namespace EduFlow
             // Register repositories
             builder.Services.AddScoped<ICourseRepository, CourseRepository>();
             builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+
 
             builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
             {
@@ -55,6 +56,14 @@ namespace EduFlow
             });
 
             var app = builder.Build();
+
+            // Seed the database
+            using (var scope = app.Services.CreateScope())
+            {
+                var seeder = scope.ServiceProvider.GetRequiredService<DbSeeder>();
+                await seeder.SeedAsync();
+                scope.Dispose();
+            }
 
             // Configure the HTTP request pipeline.
             if (!app.Environment.IsDevelopment())
