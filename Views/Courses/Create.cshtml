@@ -1,0 +1,39 @@
+﻿@using EduFlow.ViewModels
+@model CreateCourseVM
+
+<form asp-action="Create" method="post">
+
+    <div>
+        <label>Title</label>
+        <input asp-for="Title" />
+        <span asp-validation-for="Title"></span>
+    </div>
+
+    <div>
+        <label>Description</label>
+        <textarea asp-for="Description"></textarea>
+        <span asp-validation-for="Description"></span>
+    </div>
+
+    <div>
+        <label>Price</label>
+        <input asp-for="Price" />
+        <span asp-validation-for="Price"></span>
+    </div>
+
+    <div>
+        <label>Level</label>
+        <input asp-for="Level" />
+    </div>
+
+    <div>
+        <label>Category</label>
+        <select asp-for="CategoryId" asp-items="Model.Categories">
+            <option value="">-- Select Category --</option>
+        </select>
+        <span asp-validation-for="CategoryId"></span>
+    </div>
+
+    <button type="submit">Create</button>
+
+</form>
