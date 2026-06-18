@@ -3,6 +3,7 @@ using EduFlow.Models;
 using EduFlow.Repositories.Implementations;
 using EduFlow.Repositories.Interfaces;
 using EduFlow.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -69,8 +70,73 @@ namespace EduFlow.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        // GET: Courses/Edit/5
+        [HttpGet]
+        public async Task<IActionResult> Edit(int id)
+        {
+            var course = await _courseRepository.GetByIdAsync(id);
+
+            if (course == null)
+                return NotFound();
+
+            //var instructor = await _userManager.GetUserAsync(User);
+
+            //if (course.InstructorId != instructor.Id)
+            //    return Forbid();
+
+            var vm = new EditCourseVM
+            {
+                Id = course.Id,
+                Title = course.Title,
+                Description = course.Description,
+                Price = course.Price,
+                DurationInHours = course.DurationInHours,
+                Level = course.Level,
+                CategoryId = course.CategoryId,
+                ExistingImage = course.ImageUrl
+            };
+
+            await SetCategories(vm);
+
+            return View(vm);
+        }
+
+        // POST: Courses/Edit/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(EditCourseVM vm)
+        {
+            if (!ModelState.IsValid)
+            {
+                await SetCategories(vm);
+                return View(vm);
+            }
+            var course = await _courseRepository.GetByIdAsync(vm.Id);
+
+            if (course == null)
+                return NotFound();
+
+            var user = await _userManager.GetUserAsync(User);
+
+            if (course.InstructorId != user?.Id)
+                return Forbid();
+
+            course.Title = vm.Title;
+            course.Description = vm.Description;
+            course.Price = vm.Price;
+            course.DurationInHours = vm.DurationInHours;
+            course.CategoryId = vm.CategoryId;
+            course.Level = vm.Level;
+
+            _courseRepository.Update(course);
+
+            return RedirectToAction(nameof(Index));
+        }
+
+
+
         // Helper method to set categories in the ViewModel
-        private async Task SetCategories(CreateCourseVM vm)
+        private async Task SetCategories(ICourseViewModel vm)
         {
             var categories = await _categoryRepository.GetAllAsync();
 

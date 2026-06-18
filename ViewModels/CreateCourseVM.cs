@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace EduFlow.ViewModels
 {
-    public class CreateCourseVM
+    public class CreateCourseVM : ICourseViewModel
     {
         [Required]
         [StringLength(200, MinimumLength = 3)]
