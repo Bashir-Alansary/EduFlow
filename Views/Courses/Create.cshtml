@@ -1,4 +1,5 @@
-﻿@using EduFlow.ViewModels
+﻿@using EduFlow.Entities.Enums
+@using EduFlow.ViewModels
 @model CreateCourseVM
 
 <form asp-action="Create" method="post">
@@ -23,8 +24,11 @@
 
     <div>
         <label>Level</label>
-        <input asp-for="Level" />
+        <select asp-for="Level" asp-items="Html.GetEnumSelectList<CourseLevel>()">
+            <option value="">-- Select Level --</option>
+        </select>
     </div>
+
 
     <div>
         <label>Category</label>

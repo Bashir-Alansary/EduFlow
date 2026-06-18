@@ -1,7 +1,9 @@
 ﻿using EduFlow.Entities;
+using EduFlow.Models;
 using EduFlow.Repositories.Implementations;
 using EduFlow.Repositories.Interfaces;
 using EduFlow.ViewModels;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
@@ -11,13 +13,17 @@ namespace EduFlow.Controllers
     {
         private ICourseRepository _courseRepository;
         private ICategoryRepository _categoryRepository;
+        private UserManager<ApplicationUser> _userManager;
+
         public CoursesController(
-            ICourseRepository courseRepository,
-            ICategoryRepository categoryRepository
+                ICourseRepository courseRepository,
+                ICategoryRepository categoryRepository,
+                UserManager<ApplicationUser> userManager
             )
         {
             _courseRepository = courseRepository;
             _categoryRepository = categoryRepository;
+            _userManager = userManager;
         }
         public async Task<IActionResult> Index()
         {
@@ -28,16 +34,9 @@ namespace EduFlow.Controllers
         [HttpGet]
         public async Task<IActionResult> Create()
         {
-            var categories = await _categoryRepository.GetAllAsync();
-
-            var vm = new CreateCourseVM
-            {
-                Categories = categories.Select(c => new SelectListItem
-                {
-                    Value = c.Id.ToString(),
-                    Text = c.Name
-                })
-            };
+            var vm = new CreateCourseVM();
+            
+            await SetCategories(vm);
 
             return View(vm);
         }
@@ -48,18 +47,16 @@ namespace EduFlow.Controllers
         {
             if (!ModelState.IsValid)
             {
-                var categories = await _categoryRepository.GetAllAsync();
-
-                vm.Categories = categories.Select(c => new SelectListItem
-                {
-                    Value = c.Id.ToString(),
-                    Text = c.Name
-                });
+                await SetCategories(vm);
 
                 return View(vm);
             }
+
+            // TEMP: will be replaced with logged-in instructor after Identity integration
+            var instructor = await _userManager.FindByEmailAsync("instructor@eduflow.com");
             var course = new Course
             {
+                InstructorId = instructor!.Id,
                 Title = vm.Title,
                 Description = vm.Description,
                 Price = vm.Price,
@@ -71,6 +68,18 @@ namespace EduFlow.Controllers
 
             return RedirectToAction(nameof(Index));
         }
-   
+
+        // Helper method to set categories in the ViewModel
+        private async Task SetCategories(CreateCourseVM vm)
+        {
+            var categories = await _categoryRepository.GetAllAsync();
+
+            vm.Categories = categories.Select(c => new SelectListItem
+            {
+                Value = c.Id.ToString(),
+                Text = c.Name
+            });
+        }
+
     }
 }
