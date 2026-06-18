@@ -133,7 +133,42 @@ namespace EduFlow.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        // GET: Courses/Delete/5
+        [HttpGet]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var course = await _courseRepository.GetByIdAsync(id);
 
+            if (course == null)
+                return NotFound();
+
+            var user = await _userManager.GetUserAsync(User);
+
+            if (course.InstructorId != user?.Id)
+                return Forbid();
+
+            return View(course);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [ActionName("Delete")]
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            var course = await _courseRepository.GetByIdAsync(id);
+
+            if (course == null)
+                return NotFound();
+
+            var user = await _userManager.GetUserAsync(User);
+
+            if (course.InstructorId != user?.Id)
+                return Forbid();
+
+            _courseRepository.Delete(course);
+
+            return RedirectToAction(nameof(Index));
+        }
 
         // Helper method to set categories in the ViewModel
         private async Task SetCategories(ICourseViewModel vm)
