@@ -7,6 +7,7 @@
         <tr>
             <th>Title</th>
             <th>Description</th>
+            <th>Image</th>
         </tr>
     </thead>
     <tbody>
@@ -15,6 +16,15 @@
             <tr>
                 <td>@course.Title</td>
                 <td>@course.Description</td>
+                <td>
+                    @if (!string.IsNullOrEmpty(course.ImageUrl))
+                    {
+                        <img src="@course.ImageUrl" alt="@course.Title" width="100" />
+                    }
+                    else
+                    {
+                        <span>No image</span>
+                    }
             </tr>
         }
     </tbody>

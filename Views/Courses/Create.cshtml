@@ -2,7 +2,7 @@
 @using EduFlow.ViewModels
 @model CreateCourseVM
 
-<form asp-action="Create" method="post">
+<form asp-action="Create" method="post" enctype="multipart/form-data">
 
     <div>
         <label>Title</label>
@@ -29,13 +29,18 @@
         </select>
     </div>
 
-
     <div>
         <label>Category</label>
         <select asp-for="CategoryId" asp-items="Model.Categories">
             <option value="">-- Select Category --</option>
         </select>
         <span asp-validation-for="CategoryId"></span>
+    </div>
+    
+    <div>
+        <label>Image</label>
+        <input type="file" asp-for="ImageFile" />
+        <span asp-validation-for="ImageFile"></span>
     </div>
 
     <button type="submit">Create</button>

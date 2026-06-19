@@ -1,6 +1,5 @@
 ﻿using EduFlow.Entities;
 using EduFlow.Models;
-using EduFlow.Repositories.Implementations;
 using EduFlow.Repositories.Interfaces;
 using EduFlow.ViewModels;
 using Microsoft.AspNetCore.Authorization;
@@ -16,16 +15,19 @@ namespace EduFlow.Controllers
         private ICourseRepository _courseRepository;
         private ICategoryRepository _categoryRepository;
         private UserManager<ApplicationUser> _userManager;
+        private readonly IWebHostEnvironment _webHostEnvironment;
 
         public CoursesController(
                 ICourseRepository courseRepository,
                 ICategoryRepository categoryRepository,
-                UserManager<ApplicationUser> userManager
+                UserManager<ApplicationUser> userManager,
+                IWebHostEnvironment webHostEnvironment
             )
         {
             _courseRepository = courseRepository;
             _categoryRepository = categoryRepository;
             _userManager = userManager;
+            _webHostEnvironment = webHostEnvironment;
         }
 
         // GET: Courses
@@ -72,6 +74,12 @@ namespace EduFlow.Controllers
                 Level = vm.Level,
                 CategoryId = vm.CategoryId
             };
+
+            // IMAGE UPLOAD
+            if (vm.ImageFile != null)
+            {
+                course.ImageUrl = await SaveImageAsync(vm.ImageFile);
+            }
 
             await _courseRepository.AddAsync(course);
 
@@ -189,6 +197,26 @@ namespace EduFlow.Controllers
                 Value = c.Id.ToString(),
                 Text = c.Name
             });
+        }
+
+        // Helper method to save uploaded image and return its URL
+        private async Task<string> SaveImageAsync(IFormFile image)
+        {
+            var uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "images/courses");
+
+            if (!Directory.Exists(uploadsFolder))
+                Directory.CreateDirectory(uploadsFolder);
+
+            var uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(image.FileName);
+
+            var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await image.CopyToAsync(stream);
+            }
+
+            return "/images/courses/" + uniqueFileName;
         }
 
     }
