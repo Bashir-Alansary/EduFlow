@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace EduFlow.Controllers
 {
+    [Authorize]
     public class CoursesController : Controller
     {
         private ICourseRepository _courseRepository;
@@ -26,12 +27,16 @@ namespace EduFlow.Controllers
             _categoryRepository = categoryRepository;
             _userManager = userManager;
         }
+
+        // GET: Courses
+        [AllowAnonymous]
         public async Task<IActionResult> Index()
         {
             var courses = await _courseRepository.GetAllAsync();
             return View(courses);
         }
 
+        // GET: Courses/Details/5
         [HttpGet]
         public async Task<IActionResult> Create()
         {
@@ -42,6 +47,7 @@ namespace EduFlow.Controllers
             return View(vm);
         }
 
+        // POST: Courses/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(CreateCourseVM vm)
@@ -49,15 +55,17 @@ namespace EduFlow.Controllers
             if (!ModelState.IsValid)
             {
                 await SetCategories(vm);
-
                 return View(vm);
             }
 
-            // TEMP: will be replaced with logged-in instructor after Identity integration
-            var instructor = await _userManager.FindByEmailAsync("instructor@eduflow.com");
+            var instructor = await _userManager.GetUserAsync(User);
+
+            if (instructor == null)
+                return Unauthorized();
+
             var course = new Course
             {
-                InstructorId = instructor!.Id,
+                InstructorId = instructor.Id,
                 Title = vm.Title,
                 Description = vm.Description,
                 Price = vm.Price,
@@ -79,10 +87,10 @@ namespace EduFlow.Controllers
             if (course == null)
                 return NotFound();
 
-            //var instructor = await _userManager.GetUserAsync(User);
+            var instructor = await _userManager.GetUserAsync(User);
 
-            //if (course.InstructorId != instructor.Id)
-            //    return Forbid();
+            if (course.InstructorId != instructor.Id)
+                return Forbid();
 
             var vm = new EditCourseVM
             {
@@ -150,6 +158,7 @@ namespace EduFlow.Controllers
             return View(course);
         }
 
+        // POST: Courses/Delete/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         [ActionName("Delete")]
