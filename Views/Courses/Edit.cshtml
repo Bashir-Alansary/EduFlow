@@ -5,86 +5,110 @@
 }
 
 <div class="container mt-4">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
 
-            <div class="card shadow-sm">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0">Edit Course</h4>
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">Edit Course</h4>
+        </div>
+
+        <div class="card-body">
+
+            <form asp-action="Edit" method="post" enctype="multipart/form-data">
+
+                <!-- Hidden Id -->
+                <input type="hidden" asp-for="Id" />
+
+                <!-- Title -->
+                <div class="mb-3">
+                    <label asp-for="Title" class="form-label"></label>
+                    <input asp-for="Title" class="form-control" />
+                    <span asp-validation-for="Title" class="text-danger"></span>
                 </div>
 
-                <div class="card-body">
-
-                    <form asp-action="Edit" method="post">
-
-                        <!-- Hidden Id -->
-                        <input type="hidden" asp-for="Id" />
-
-                        <!-- Title -->
-                        <div class="mb-3">
-                            <label asp-for="Title" class="form-label"></label>
-                            <input asp-for="Title" class="form-control" />
-                            <span asp-validation-for="Title" class="text-danger"></span>
-                        </div>
-
-                        <!-- Description -->
-                        <div class="mb-3">
-                            <label asp-for="Description" class="form-label"></label>
-                            <textarea asp-for="Description" class="form-control" rows="4"></textarea>
-                            <span asp-validation-for="Description" class="text-danger"></span>
-                        </div>
-
-                        <!-- Price -->
-                        <div class="mb-3">
-                            <label asp-for="Price" class="form-label"></label>
-                            <input asp-for="Price" class="form-control" />
-                            <span asp-validation-for="Price" class="text-danger"></span>
-                        </div>
-
-                        <!-- Duration -->
-                        <div class="mb-3">
-                            <label asp-for="DurationInHours" class="form-label"></label>
-                            <input asp-for="DurationInHours" class="form-control" />
-                            <span asp-validation-for="DurationInHours" class="text-danger"></span>
-                        </div>
-
-                        <!-- Category -->
-                        <div class="mb-3">
-                            <label asp-for="CategoryId" class="form-label"></label>
-                            <select asp-for="CategoryId"
-                                    asp-items="Model.Categories"
-                                    class="form-select">
-                                <option value="">-- Select Category --</option>
-                            </select>
-                            <span asp-validation-for="CategoryId" class="text-danger"></span>
-                        </div>
-
-                        <!-- Level -->
-                        <div class="mb-3">
-                            <label asp-for="Level" class="form-label"></label>
-                            <select asp-for="Level" class="form-select"
-                                    asp-items="Html.GetEnumSelectList<EduFlow.Entities.Enums.CourseLevel>()">
-                            </select>
-                            <span asp-validation-for="Level" class="text-danger"></span>
-                        </div>
-
-                        <button type="submit" class="btn btn-success">
-                            Save Changes
-                        </button>
-
-                        <a asp-action="Index" class="btn btn-secondary">
-                            Cancel
-                        </a>
-
-                    </form>
-
+                <!-- Description -->
+                <div class="mb-3">
+                    <label asp-for="Description" class="form-label"></label>
+                    <textarea asp-for="Description" class="form-control" rows="4"></textarea>
+                    <span asp-validation-for="Description" class="text-danger"></span>
                 </div>
-            </div>
+
+                <!-- Price -->
+                <div class="mb-3">
+                    <label asp-for="Price" class="form-label"></label>
+                    <input asp-for="Price" class="form-control" />
+                    <span asp-validation-for="Price" class="text-danger"></span>
+                </div>
+
+                <!-- Duration -->
+                <div class="mb-3">
+                    <label asp-for="DurationInHours" class="form-label"></label>
+                    <input asp-for="DurationInHours" class="form-control" />
+                    <span asp-validation-for="DurationInHours" class="text-danger"></span>
+                </div>
+
+                <!-- Category -->
+                <div class="mb-3">
+                    <label asp-for="CategoryId" class="form-label"></label>
+                    <select asp-for="CategoryId"
+                            asp-items="Model.Categories"
+                            class="form-select">
+                        <option value="">-- Select Category --</option>
+                    </select>
+                    <span asp-validation-for="CategoryId" class="text-danger"></span>
+                </div>
+
+                <!-- Level -->
+                <div class="mb-3">
+                    <label asp-for="Level" class="form-label"></label>
+                    <select asp-for="Level" class="form-select"
+                            asp-items="Html.GetEnumSelectList<EduFlow.Entities.Enums.CourseLevel>()">
+                    </select>
+                    <span asp-validation-for="Level" class="text-danger"></span>
+                </div>
+
+                <!-- Current Image -->
+                <div class="mb-3">
+                    <label class="form-label">Current Image</label>
+
+                    @if (!string.IsNullOrEmpty(Model.ExistingImage))
+                    {
+                        <div>
+                            <img src="@Model.ExistingImage"
+                                 width="150"
+                                 class="img-thumbnail" />
+                        </div>
+                    }
+                    else
+                    {
+                        <span class="text-muted">No image available</span>
+                    }
+                </div>
+
+                <!-- New Image -->
+                <div class="mb-3">
+                    <label asp-for="Image" class="form-label">Change Course Image</label>
+                    <input asp-for="Image" type="file" class="form-control" />
+                    <span asp-validation-for="Image" class="text-danger"></span>
+                </div>
+
+                <!-- Buttons -->
+                <button type="submit" class="btn btn-success">
+                    Save Changes
+                </button>
+
+                <a asp-action="Index" class="btn btn-secondary">
+                    Cancel
+                </a>
+
+            </form>
 
         </div>
     </div>
+
 </div>
 
 @section Scripts {
-    <partial name="_ValidationScriptsPartial" />
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }

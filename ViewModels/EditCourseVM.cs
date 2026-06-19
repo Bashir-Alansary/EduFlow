@@ -19,6 +19,7 @@ namespace EduFlow.ViewModels
         public int CategoryId { get; set; }
 
         public string? ExistingImage { get; set; }
+        public IFormFile? Image { get; set; }
 
         public IEnumerable<SelectListItem>? Categories { get; set; }
     }

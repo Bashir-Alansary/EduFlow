@@ -144,6 +144,16 @@ namespace EduFlow.Controllers
             course.CategoryId = vm.CategoryId;
             course.Level = vm.Level;
 
+            // IMAGE LOGIC
+            if (vm.Image != null)
+            {
+                // delete old image
+                DeleteImage(course.ImageUrl);
+
+                // save new image
+                course.ImageUrl = await SaveImageAsync(vm.Image);
+            }
+
             _courseRepository.Update(course);
 
             return RedirectToAction(nameof(Index));
@@ -182,6 +192,9 @@ namespace EduFlow.Controllers
             if (course.InstructorId != user?.Id)
                 return Forbid();
 
+            // Delete the associated image
+            DeleteImage(course.ImageUrl);
+
             _courseRepository.Delete(course);
 
             return RedirectToAction(nameof(Index));
@@ -219,5 +232,21 @@ namespace EduFlow.Controllers
             return "/images/courses/" + uniqueFileName;
         }
 
+        // Helper method to delete an image file from the server
+        private void DeleteImage(string? imageUrl)
+        {
+            if (string.IsNullOrEmpty(imageUrl))
+                return;
+
+            var imagePath = Path.Combine(
+                _webHostEnvironment.WebRootPath,
+                imageUrl.TrimStart('/')
+            );
+
+            if (System.IO.File.Exists(imagePath))
+            {
+                System.IO.File.Delete(imagePath);
+            }
+        }
     }
 }
