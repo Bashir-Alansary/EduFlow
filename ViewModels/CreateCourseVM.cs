@@ -1,4 +1,5 @@
 ﻿using EduFlow.Entities.Enums;
+using EduFlow.Validation;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System.ComponentModel.DataAnnotations;
 
@@ -24,6 +25,8 @@ namespace EduFlow.ViewModels
         [Required]
         public int CategoryId { get; set; }
 
+        [AllowedExtensions(new[] { ".jpg", ".jpeg", ".png" })]
+        [MaxFileSize(2 * 1024 * 1024)]
         public IFormFile? ImageFile { get; set; }
 
         // For dropdown only (GET)

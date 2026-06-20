@@ -1,4 +1,5 @@
 ﻿using EduFlow.Entities.Enums;
+using EduFlow.Validation;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace EduFlow.ViewModels
@@ -19,6 +20,9 @@ namespace EduFlow.ViewModels
         public int CategoryId { get; set; }
 
         public string? ExistingImage { get; set; }
+
+        [AllowedExtensions(new[] { ".jpg", ".jpeg", ".png" })]
+        [MaxFileSize(2 * 1024 * 1024)]
         public IFormFile? Image { get; set; }
 
         public IEnumerable<SelectListItem>? Categories { get; set; }

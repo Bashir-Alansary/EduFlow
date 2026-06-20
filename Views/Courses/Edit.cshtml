@@ -70,18 +70,11 @@
                 <div class="mb-3">
                     <label class="form-label">Current Image</label>
 
-                    @if (!string.IsNullOrEmpty(Model.ExistingImage))
-                    {
-                        <div>
-                            <img src="@Model.ExistingImage"
-                                 width="150"
-                                 class="img-thumbnail" />
-                        </div>
-                    }
-                    else
-                    {
-                        <span class="text-muted">No image available</span>
-                    }
+                    <img src="@(string.IsNullOrEmpty(Model.ExistingImage)
+                             ? "/images/courses/default-course.jpg"
+                             : Model.ExistingImage)"
+                         width="150"
+                         class="img-thumbnail" />
                 </div>
 
                 <!-- New Image -->
