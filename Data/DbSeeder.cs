@@ -1,5 +1,6 @@
 ﻿using EduFlow.Data;
 using EduFlow.Entities;
+using EduFlow.Entities.Constants;
 using EduFlow.Entities.Enums;
 using EduFlow.Models;
 using Microsoft.AspNetCore.Identity;
@@ -8,15 +9,31 @@ public class DbSeeder
 {
     private readonly AppDbContext _context;
     private readonly UserManager<ApplicationUser> _userManager;
+    private readonly RoleManager<IdentityRole> _roleManager;
 
-    public DbSeeder(AppDbContext context, UserManager<ApplicationUser> userManager)
+    public DbSeeder(
+        AppDbContext context, 
+        UserManager<ApplicationUser> userManager,
+        RoleManager<IdentityRole> roleManager)
     {
         _context = context;
         _userManager = userManager;
+        _roleManager = roleManager;
     }
 
     public async Task SeedAsync()
     {
+        // Seed Roles
+        if (!await _roleManager.RoleExistsAsync(Roles.Instructor))
+        {
+            await _roleManager.CreateAsync(new IdentityRole(Roles.Instructor));
+        }
+
+        if (!await _roleManager.RoleExistsAsync(Roles.Student))
+        {
+            await _roleManager.CreateAsync(new IdentityRole(Roles.Student));
+        }
+
         // Seed Categories
         if (!_context.Categories.Any())
         {
@@ -47,6 +64,11 @@ public class DbSeeder
             if (!result.Succeeded)
             {
                 throw new Exception(string.Join(", ", result.Errors.Select(e => e.Description)));
+            }
+
+            if (!await _userManager.IsInRoleAsync(instructor, Roles.Instructor))
+            {
+                await _userManager.AddToRoleAsync(instructor, Roles.Instructor);
             }
         }
 

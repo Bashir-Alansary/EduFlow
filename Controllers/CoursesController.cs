@@ -1,4 +1,5 @@
 ﻿using EduFlow.Entities;
+using EduFlow.Entities.Constants;
 using EduFlow.Models;
 using EduFlow.Repositories.Interfaces;
 using EduFlow.ViewModels;
@@ -12,17 +13,16 @@ namespace EduFlow.Controllers
     [Authorize]
     public class CoursesController : Controller
     {
-        private ICourseRepository _courseRepository;
-        private ICategoryRepository _categoryRepository;
-        private UserManager<ApplicationUser> _userManager;
+        private readonly ICourseRepository _courseRepository;
+        private readonly ICategoryRepository _categoryRepository;
+        private readonly UserManager<ApplicationUser> _userManager;
         private readonly IWebHostEnvironment _webHostEnvironment;
 
         public CoursesController(
-                ICourseRepository courseRepository,
-                ICategoryRepository categoryRepository,
-                UserManager<ApplicationUser> userManager,
-                IWebHostEnvironment webHostEnvironment
-            )
+            ICourseRepository courseRepository,
+            ICategoryRepository categoryRepository,
+            UserManager<ApplicationUser> userManager,
+            IWebHostEnvironment webHostEnvironment)
         {
             _courseRepository = courseRepository;
             _categoryRepository = categoryRepository;
@@ -30,7 +30,7 @@ namespace EduFlow.Controllers
             _webHostEnvironment = webHostEnvironment;
         }
 
-        // GET: Courses
+        // GET: Courses (Public)
         [AllowAnonymous]
         public async Task<IActionResult> Index()
         {
@@ -38,18 +38,17 @@ namespace EduFlow.Controllers
             return View(courses);
         }
 
-        // GET: Courses/Details/5
-        [HttpGet]
+        // GET: Create
+        [Authorize(Roles = Roles.Instructor)]
         public async Task<IActionResult> Create()
         {
             var vm = new CreateCourseVM();
-            
             await SetCategories(vm);
-
             return View(vm);
         }
 
-        // POST: Courses/Create
+        // POST: Create
+        [Authorize(Roles = Roles.Instructor)]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(CreateCourseVM vm)
@@ -60,14 +59,11 @@ namespace EduFlow.Controllers
                 return View(vm);
             }
 
-            var instructor = await _userManager.GetUserAsync(User);
-
-            if (instructor == null)
-                return Unauthorized();
+            var currentUser = await _userManager.GetUserAsync(User);
 
             var course = new Course
             {
-                InstructorId = instructor.Id,
+                InstructorId = currentUser!.Id,
                 Title = vm.Title,
                 Description = vm.Description,
                 Price = vm.Price,
@@ -75,7 +71,6 @@ namespace EduFlow.Controllers
                 CategoryId = vm.CategoryId
             };
 
-            // IMAGE UPLOAD
             if (vm.ImageFile != null)
             {
                 course.ImageUrl = await SaveImageAsync(vm.ImageFile);
@@ -86,8 +81,8 @@ namespace EduFlow.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // GET: Courses/Edit/5
-        [HttpGet]
+        // GET: Edit
+        [Authorize(Roles = Roles.Instructor)]
         public async Task<IActionResult> Edit(int id)
         {
             var course = await _courseRepository.GetByIdAsync(id);
@@ -95,9 +90,9 @@ namespace EduFlow.Controllers
             if (course == null)
                 return NotFound();
 
-            var instructor = await _userManager.GetUserAsync(User);
+            var currentUser = await _userManager.GetUserAsync(User);
 
-            if (course.InstructorId != instructor.Id)
+            if (currentUser == null || course.InstructorId != currentUser.Id)
                 return Forbid();
 
             var vm = new EditCourseVM
@@ -117,7 +112,8 @@ namespace EduFlow.Controllers
             return View(vm);
         }
 
-        // POST: Courses/Edit/5
+        // POST: Edit
+        [Authorize(Roles = Roles.Instructor)]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(EditCourseVM vm)
@@ -127,14 +123,15 @@ namespace EduFlow.Controllers
                 await SetCategories(vm);
                 return View(vm);
             }
+
             var course = await _courseRepository.GetByIdAsync(vm.Id);
 
             if (course == null)
                 return NotFound();
 
-            var user = await _userManager.GetUserAsync(User);
+            var currentUser = await _userManager.GetUserAsync(User);
 
-            if (course.InstructorId != user?.Id)
+            if (currentUser == null || course.InstructorId != currentUser.Id)
                 return Forbid();
 
             course.Title = vm.Title;
@@ -144,13 +141,9 @@ namespace EduFlow.Controllers
             course.CategoryId = vm.CategoryId;
             course.Level = vm.Level;
 
-            // IMAGE LOGIC
             if (vm.Image != null)
             {
-                // delete old image
                 DeleteImage(course.ImageUrl);
-
-                // save new image
                 course.ImageUrl = await SaveImageAsync(vm.Image);
             }
 
@@ -159,8 +152,8 @@ namespace EduFlow.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // GET: Courses/Delete/5
-        [HttpGet]
+        // GET: Delete
+        [Authorize(Roles = Roles.Instructor)]
         public async Task<IActionResult> Delete(int id)
         {
             var course = await _courseRepository.GetByIdAsync(id);
@@ -168,15 +161,16 @@ namespace EduFlow.Controllers
             if (course == null)
                 return NotFound();
 
-            var user = await _userManager.GetUserAsync(User);
+            var currentUser = await _userManager.GetUserAsync(User);
 
-            if (course.InstructorId != user?.Id)
+            if (currentUser == null || course.InstructorId != currentUser.Id)
                 return Forbid();
 
             return View(course);
         }
 
-        // POST: Courses/Delete/5
+        // POST: Delete
+        [Authorize(Roles = Roles.Instructor)]
         [HttpPost]
         [ValidateAntiForgeryToken]
         [ActionName("Delete")]
@@ -187,12 +181,11 @@ namespace EduFlow.Controllers
             if (course == null)
                 return NotFound();
 
-            var user = await _userManager.GetUserAsync(User);
+            var currentUser = await _userManager.GetUserAsync(User);
 
-            if (course.InstructorId != user?.Id)
+            if (currentUser == null || course.InstructorId != currentUser.Id)
                 return Forbid();
 
-            // Delete the associated image
             DeleteImage(course.ImageUrl);
 
             _courseRepository.Delete(course);
@@ -200,7 +193,8 @@ namespace EduFlow.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // Helper method to set categories in the ViewModel
+        // ================= Helpers =================
+
         private async Task SetCategories(ICourseViewModel vm)
         {
             var categories = await _categoryRepository.GetAllAsync();
@@ -212,7 +206,6 @@ namespace EduFlow.Controllers
             });
         }
 
-        // Helper method to save uploaded image and return its URL
         private async Task<string> SaveImageAsync(IFormFile image)
         {
             var uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "images/courses");
@@ -220,33 +213,27 @@ namespace EduFlow.Controllers
             if (!Directory.Exists(uploadsFolder))
                 Directory.CreateDirectory(uploadsFolder);
 
-            var uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(image.FileName);
+            var fileName = Guid.NewGuid() + Path.GetExtension(image.FileName);
+            var filePath = Path.Combine(uploadsFolder, fileName);
 
-            var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+            using var stream = new FileStream(filePath, FileMode.Create);
+            await image.CopyToAsync(stream);
 
-            using (var stream = new FileStream(filePath, FileMode.Create))
-            {
-                await image.CopyToAsync(stream);
-            }
-
-            return "/images/courses/" + uniqueFileName;
+            return "/images/courses/" + fileName;
         }
 
-        // Helper method to delete an image file from the server
         private void DeleteImage(string? imageUrl)
         {
             if (string.IsNullOrEmpty(imageUrl))
                 return;
 
-            var imagePath = Path.Combine(
+            var path = Path.Combine(
                 _webHostEnvironment.WebRootPath,
                 imageUrl.TrimStart('/')
             );
 
-            if (System.IO.File.Exists(imagePath))
-            {
-                System.IO.File.Delete(imagePath);
-            }
+            if (System.IO.File.Exists(path))
+                System.IO.File.Delete(path);
         }
     }
 }
