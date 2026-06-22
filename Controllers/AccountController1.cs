@@ -1,5 +1,5 @@
 ﻿using EduFlow.Models;
-using EduFlow.ViewModels;
+using EduFlow.ViewModels.Auth;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 

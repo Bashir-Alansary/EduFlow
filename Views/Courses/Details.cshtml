@@ -1,0 +1,37 @@
+﻿@using EduFlow.ViewModels.Courses
+@model CourseDetailsVM
+
+<h1>@Model.Title</h1>
+
+@if (!string.IsNullOrEmpty(Model.ImageUrl))
+{
+    <img src="@Model.ImageUrl" width="300" />
+}
+else
+{
+    <p>No image available</p>
+}
+
+<p>@Model.Description</p>
+
+<p><b>Price:</b> @Model.Price</p>
+
+<p>
+    <b>Category:</b>
+    @(Model.CategoryName ?? "Uncategorized")
+</p>
+
+<p>
+    <b>Instructor:</b>
+    @(Model.InstructorName ?? "Unknown")
+</p>
+
+<hr />
+
+<h3>Stats</h3>
+
+<ul>
+    <li>Sections: @Model.SectionsCount</li>
+    <li>Lessons: @Model.LessonsCount</li>
+    <li>Reviews: @Model.ReviewsCount</li>
+</ul>

@@ -2,7 +2,7 @@
 using EduFlow.Entities.Constants;
 using EduFlow.Models;
 using EduFlow.Repositories.Interfaces;
-using EduFlow.ViewModels;
+using EduFlow.ViewModels.Courses;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -208,12 +208,31 @@ namespace EduFlow.Controllers
             return View(courses);
         }
 
-        public async Task<IActionResult> Test()
+        [AllowAnonymous]
+        public async Task<IActionResult> Details(int id)
         {
-            var user = await _userManager.GetUserAsync(User);
-            var roles = await _userManager.GetRolesAsync(user);
+            var course = await _courseRepository.GetDetailsAsync(id);
 
-            return Json(roles);
+            if (course == null)
+                return NotFound();
+
+            var vm = new CourseDetailsVM
+            {
+                Id = course.Id,
+                Title = course.Title,
+                Description = course.Description,
+                Price = course.Price,
+                ImageUrl = course.ImageUrl,
+
+                CategoryName = course.Category?.Name,
+                InstructorName = course.Instructor?.FullName ?? "Unknown",
+
+                SectionsCount = course.Sections?.Count ?? 0,
+                LessonsCount = course.Sections?.Sum(s => s.Lessons?.Count()) ?? 0,
+                ReviewsCount = course.Reviews?.Count ?? 0
+            };
+
+            return View(vm);
         }
 
         // ================= Helpers =================

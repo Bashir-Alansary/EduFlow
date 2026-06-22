@@ -50,5 +50,17 @@ namespace EduFlow.Repositories.Implementations
                 .ToListAsync();
         }
 
+        public async Task<Course?> GetDetailsAsync(int id)
+        {
+            return await _context.Courses
+                .Include(c => c.Category)
+                .Include(c => c.Instructor)
+                .Include(c => c.Enrollments)
+                .Include(c => c.Reviews)
+                .Include(c => c.Sections)
+                    .ThenInclude(s => s.Lessons)
+                .FirstOrDefaultAsync(c => c.Id == id);
+        }
+
     }
 }

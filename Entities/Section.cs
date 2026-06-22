@@ -11,5 +11,6 @@ namespace EduFlow.Entities
         public int Order { get; set; }  
         public int CourseId { get; set; }
         public Course Course { get; set; } = null!;
+        public List<Lesson> Lessons { get; internal set; } = new List<Lesson>();
     }
 }
