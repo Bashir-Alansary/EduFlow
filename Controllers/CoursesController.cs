@@ -193,6 +193,29 @@ namespace EduFlow.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        // GET: My Courses
+        [Authorize(Roles = Roles.Instructor)]
+        public async Task<IActionResult> MyCourses()
+        {
+            var currentUser = await _userManager.GetUserAsync(User);
+
+            if (currentUser == null)
+                return Unauthorized();
+
+            var courses = await _courseRepository
+                .GetByInstructorIdAsync(currentUser.Id);
+
+            return View(courses);
+        }
+
+        public async Task<IActionResult> Test()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            var roles = await _userManager.GetRolesAsync(user);
+
+            return Json(roles);
+        }
+
         // ================= Helpers =================
 
         private async Task SetCategories(ICourseViewModel vm)

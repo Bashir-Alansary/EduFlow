@@ -49,14 +49,14 @@ public class DbSeeder
         }
 
         // Seed Instructor User
-        var instructor = await _userManager.FindByEmailAsync("instructor@eduflow.com");
+        var instructor = await _userManager.FindByEmailAsync("instructor2@eduflow.com");
         if (instructor == null)
         {
             instructor = new ApplicationUser
             {
-                UserName = "instructor@eduflow.com",
-                Email = "instructor@eduflow.com",
-                FullName = "Test Instructor",
+                UserName = "instructor2@eduflow.com",
+                Email = "instructor2@eduflow.com",
+                FullName = "Test Instructor2",
                 EmailConfirmed = true
             };
 

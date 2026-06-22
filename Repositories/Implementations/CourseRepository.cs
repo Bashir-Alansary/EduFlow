@@ -43,5 +43,12 @@ namespace EduFlow.Repositories.Implementations
             _context.SaveChanges();
         }
 
+        public async Task<List<Course>> GetByInstructorIdAsync(string instructorId)
+        {
+            return await _context.Courses
+                .Where(c => c.InstructorId == instructorId)
+                .ToListAsync();
+        }
+
     }
 }

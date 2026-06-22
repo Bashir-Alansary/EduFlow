@@ -1,0 +1,24 @@
+﻿@using EduFlow.Entities
+@model List<Course>
+
+<h2>My Courses</h2>
+
+@foreach (var course in Model)
+{
+    <div>
+        <h4>@course.Title</h4>
+        <p>@course.Price</p>
+
+        <a asp-action="Edit"
+           asp-route-id="@course.Id">
+            Edit
+        </a>
+
+        <a asp-action="Delete"
+           asp-route-id="@course.Id">
+            Delete
+        </a>
+    </div>
+
+    <hr />
+}
