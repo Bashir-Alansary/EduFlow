@@ -1,29 +1,78 @@
-﻿@model List<EduFlow.Entities.Course>
+﻿@model IEnumerable<EduFlow.Entities.Course>
+
+@{
+    ViewData["Title"] = "Courses";
+
+    var categories = ViewBag.Categories as SelectList;
+
+    string? searchTerm = Context.Request.Query["searchTerm"];
+}
 
 <h2>Courses</h2>
 
-<table class="table">
-    <thead>
-        <tr>
-            <th>Title</th>
-            <th>Description</th>
-            <th>Image</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var course in Model)
-        {
-            <tr>
-                <td>@course.Title</td>
-                <td>@course.Description</td>
-                <td>
-                    <img src="@(string.IsNullOrEmpty(course.ImageUrl)
-                             ? "/images/courses/default-course.jpg"
-                             : course.ImageUrl)"
-                         width="150"
-                         class="img-thumbnail" />
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+<form method="get">
+
+    <!-- Search -->
+    <input type="text"
+           name="searchTerm"
+           value="@searchTerm"
+           placeholder="Search courses..."
+           class="form-control" />
+
+    <!-- Category -->
+    <select name="categoryId" asp-items="categories" class="form-control mt-2">
+        <option value="">All Categories</option>
+    </select>
+
+    <button type="submit" class="btn btn-primary mt-2">
+        Search
+    </button>
+
+    <a href="/Courses" class="btn btn-secondary mt-2">
+        Reset
+    </a>
+
+</form>
+
+<!-- 📚 Courses -->
+<div class="row">
+
+    @foreach (var course in Model)
+    {
+        <div class="col-md-4 mb-3">
+
+            <div class="card">
+
+                <img src="@(string.IsNullOrEmpty(course.ImageUrl)
+                         ? "/images/courses/default-course.jpg"
+                         : course.ImageUrl)"
+                     class="card-img-top" />
+
+                <div class="card-body">
+
+                    <h5>@course.Title</h5>
+
+                    <p>@course.Description</p>
+
+                    <p>
+                        <strong>Category:</strong> @course.Category?.Name
+                    </p>
+
+                    <p>
+                        <strong>Instructor:</strong> @course.Instructor?.FullName
+                    </p>
+
+                    <a asp-action="Details"
+                       asp-route-id="@course.Id"
+                       class="btn btn-info">
+                        Details
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+    }
+
+</div>

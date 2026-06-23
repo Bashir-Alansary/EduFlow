@@ -32,9 +32,12 @@ namespace EduFlow.Controllers
 
         // GET: Courses (Public)
         [AllowAnonymous]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string? searchTerm, int? categoryId)
         {
-            var courses = await _courseRepository.GetAllAsync();
+            var courses = await _courseRepository.FilterAsync(searchTerm, categoryId);
+            var categories = await _categoryRepository.GetAllAsync();
+            ViewBag.Categories = new SelectList(categories, "Id", "Name", categoryId);
+
             return View(courses);
         }
 

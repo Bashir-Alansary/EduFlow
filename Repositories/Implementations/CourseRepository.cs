@@ -62,5 +62,27 @@ namespace EduFlow.Repositories.Implementations
                 .FirstOrDefaultAsync(c => c.Id == id);
         }
 
+        public async Task<IEnumerable<Course>> FilterAsync(string? searchTerm, int? categoryId)
+        {
+            IQueryable<Course> query = _context.Courses
+            .Include(c => c.Category)
+            .Include(c => c.Instructor)
+            .AsNoTracking();
+
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                query = query.Where(c =>
+                    c.Title.Contains(searchTerm));
+            }
+
+            if (categoryId.HasValue)
+            {
+                query = query.Where(c =>
+                    c.CategoryId == categoryId.Value);
+            }
+
+            return await query.ToListAsync();
+        }
+
     }
 }

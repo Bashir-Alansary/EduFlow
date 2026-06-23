@@ -6,5 +6,6 @@ namespace EduFlow.Repositories.Interfaces
     {
         Task<List<Course>> GetByInstructorIdAsync(string instructorId);
         Task<Course?> GetDetailsAsync(int id);
+        Task<IEnumerable<Course>> FilterAsync(string? searchTerm, int? categoryId);
     }
 }
