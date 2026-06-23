@@ -1,4 +1,5 @@
-﻿using EduFlow.Models;
+﻿using EduFlow.Entities.Constants;
+using EduFlow.Models;
 using EduFlow.ViewModels.Auth;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -39,6 +40,7 @@ namespace EduFlow.Controllers
 
                 if (result.Succeeded)
                 {
+                    await _userManager.AddToRoleAsync(user, Roles.Student);
                     await _signInManager.SignInAsync(user, isPersistent: false);
                     return RedirectToAction("Index", "Home");
                 }
