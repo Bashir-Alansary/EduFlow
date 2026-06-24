@@ -11,5 +11,6 @@ namespace EduFlow.Repositories.Interfaces
         Task RemoveAsync(string studentId, int courseId);
 
         Task<IEnumerable<Wishlist>> GetByStudentIdAsync(string studentId);
+        Task RemoveAllAsync(string studentId);
     }
 }

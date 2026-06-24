@@ -49,5 +49,16 @@ namespace EduFlow.Repositories.Implementations
                 .Include(w => w.Course)
                 .ToListAsync();
         }
+
+        public async Task RemoveAllAsync(string studentId)
+        {
+            var wishlistItems = await _context.Wishlists
+                .Where(w => w.StudentId == studentId)
+                .ToListAsync();
+
+            _context.Wishlists.RemoveRange(wishlistItems);
+
+            await _context.SaveChangesAsync();
+        }
     }
 }

@@ -4,6 +4,7 @@ using EduFlow.Models;
 using EduFlow.Repositories.Implementations;
 using EduFlow.Repositories.Interfaces;
 using EduFlow.ViewModels.Courses;
+using EduFlow.ViewModels.Wishlist;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -319,6 +320,40 @@ namespace EduFlow.Controllers
             await _wishlistRepository.RemoveAsync(userId!, courseId);
 
             return RedirectToAction(nameof(Details), new { id = courseId });
+        }
+
+        // GET: Wishlist
+        [HttpGet]
+        [Authorize(Roles = Roles.Student)]
+        public async Task<IActionResult> Wishlist()
+        {
+            var userId = _userManager.GetUserId(User);
+
+            var wishlist = await _wishlistRepository
+                .GetByStudentIdAsync(userId!);
+
+            var vm = wishlist.Select(w => new WishlistItemVM
+            {
+                CourseId = w.CourseId,
+                Title = w.Course.Title,
+                ImageUrl = w.Course.ImageUrl,
+                Price = w.Course.Price,
+                CategoryName = w.Course.Category?.Name ?? "Unknown"
+            });
+
+            return View(vm);
+        }
+
+        [HttpPost]
+        [Authorize(Roles = Roles.Student)]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ClearWishlist()
+        {
+            var userId = _userManager.GetUserId(User);
+
+            await _wishlistRepository.RemoveAllAsync(userId!);
+
+            return RedirectToAction(nameof(Wishlist));
         }
 
         // ================= Helpers =================

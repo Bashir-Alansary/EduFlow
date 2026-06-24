@@ -1,0 +1,50 @@
+﻿@model IEnumerable<EduFlow.ViewModels.Wishlist.WishlistItemVM>
+
+<h2>My Wishlist</h2>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">
+        Your wishlist is empty.
+    </div>
+}
+else
+{
+    <form asp-action="ClearWishlist" method="post" class="mb-3">
+        @Html.AntiForgeryToken()
+
+        <button type="submit" class="btn btn-danger">
+            Clear Wishlist
+        </button>
+    </form>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Course</th>
+                <th>Category</th>
+                <th>Price</th>
+                <th></th>
+            </tr>
+        </thead>
+
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.Title</td>
+                    <td>@item.CategoryName</td>
+                    <td>@item.Price</td>
+
+                    <td>
+                        <a asp-action="Details"
+                           asp-route-id="@item.CourseId"
+                           class="btn btn-primary btn-sm">
+                            Details
+                        </a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
