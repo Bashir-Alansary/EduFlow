@@ -24,6 +24,7 @@ namespace EduFlow
             builder.Services.AddScoped<ICourseRepository, CourseRepository>();
             builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
             builder.Services.AddScoped<IEnrollmentRepository, EnrollmentRepository>();
+            builder.Services.AddScoped<IWishlistRepository, WishlistRepository>();
 
 
             builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>

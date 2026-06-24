@@ -54,4 +54,36 @@
         }
     </div>
 
+    @if (User.Identity?.IsAuthenticated == true && User.IsInRole("Student"))
+    {
+        @if (Model.IsInWishlist)
+        {
+            <form asp-action="RemoveFromWishlist" method="post">
+                @Html.AntiForgeryToken()
+
+                <input type="hidden"
+                       name="courseId"
+                       value="@Model.Id" />
+
+                <button class="btn btn-outline-danger">
+                    Remove From Wishlist
+                </button>
+            </form>
+        }
+        else
+        {
+            <form asp-action="AddToWishlist" method="post">
+                @Html.AntiForgeryToken()
+
+                <input type="hidden"
+                       name="courseId"
+                       value="@Model.Id" />
+
+                <button class="btn btn-outline-primary">
+                    Add To Wishlist
+                </button>
+            </form>
+        }
+    }
+
 </div>

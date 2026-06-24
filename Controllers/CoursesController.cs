@@ -19,19 +19,22 @@ namespace EduFlow.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IWebHostEnvironment _webHostEnvironment;
         private readonly IEnrollmentRepository _enrollmentRepository;
+        private readonly IWishlistRepository _wishlistRepository;
 
         public CoursesController(
             ICourseRepository courseRepository,
             ICategoryRepository categoryRepository,
             UserManager<ApplicationUser> userManager,
             IWebHostEnvironment webHostEnvironment,
-            IEnrollmentRepository enrollmentRepository)
+            IEnrollmentRepository enrollmentRepository,
+            IWishlistRepository wishlistRepository)
         {
             _courseRepository = courseRepository;
             _categoryRepository = categoryRepository;
             _userManager = userManager;
             _webHostEnvironment = webHostEnvironment;
             _enrollmentRepository = enrollmentRepository;
+            _wishlistRepository = wishlistRepository;
         }
 
         // GET: Courses (Public)
@@ -228,10 +231,12 @@ namespace EduFlow.Controllers
                 : null;
 
             var isEnrolled = false;
+            var isInWishlist = false;
 
             if (userId != null)
             {
                 isEnrolled = await _enrollmentRepository.IsEnrolledAsync(userId, id);
+                isInWishlist = await _wishlistRepository.IsInWishlistAsync(userId, id);
             }
 
             var vm = new CourseDetailsVM
@@ -241,6 +246,7 @@ namespace EduFlow.Controllers
                 Description = course.Description,
                 Price = course.Price,
                 ImageUrl = course.ImageUrl,
+                IsInWishlist = isInWishlist,
 
                 CategoryName = course.Category?.Name ?? "Unknown",
                 InstructorName = course.Instructor?.FullName ?? "Unknown",
@@ -280,6 +286,39 @@ namespace EduFlow.Controllers
             await _enrollmentRepository.EnrollAsync(enrollment);
 
             return RedirectToAction("Details", new { id = courseId });
+        }
+
+        // POST: Add to Wishlist
+        [HttpPost]
+        [Authorize(Roles = Roles.Student)]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddToWishlist(int courseId)
+        {
+            var userId = _userManager.GetUserId(User);
+
+            if (!await _wishlistRepository.IsInWishlistAsync(userId!, courseId))
+            {
+                await _wishlistRepository.AddAsync(new Wishlist
+                {
+                    StudentId = userId!,
+                    CourseId = courseId
+                });
+            }
+
+            return RedirectToAction(nameof(Details), new { id = courseId });
+        }
+
+        // POST: Remove from Wishlist
+        [HttpPost]
+        [Authorize(Roles = Roles.Student)]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RemoveFromWishlist(int courseId)
+        {
+            var userId = _userManager.GetUserId(User);
+
+            await _wishlistRepository.RemoveAsync(userId!, courseId);
+
+            return RedirectToAction(nameof(Details), new { id = courseId });
         }
 
         // ================= Helpers =================

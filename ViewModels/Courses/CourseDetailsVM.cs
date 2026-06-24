@@ -18,5 +18,6 @@
         public int? LessonsCount { get; set; }
         public int ReviewsCount { get; set; }
         public bool IsEnrolled { get; set; }
+        public bool IsInWishlist { get; set; }
     }
 }
