@@ -57,6 +57,7 @@ namespace EduFlow.Repositories.Implementations
                 .Include(c => c.Instructor)
                 .Include(c => c.Enrollments)
                 .Include(c => c.Reviews)
+                    .ThenInclude(r => r.Student)
                 .Include(c => c.Sections)
                     .ThenInclude(s => s.Lessons)
                 .FirstOrDefaultAsync(c => c.Id == id);

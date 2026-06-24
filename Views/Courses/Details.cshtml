@@ -1,89 +1,219 @@
 ﻿@using EduFlow.ViewModels.Courses
 @model CourseDetailsVM
 
-<div class="container mt-4">
-
-    <!-- Course Image -->
-    <div class="mb-3">
-        @if (!string.IsNullOrEmpty(Model.ImageUrl))
-        {
-            <img src="@Model.ImageUrl" alt="Course Image" class="img-fluid rounded" style="max-height: 300px;" />
-        }
-        else
-        {
-            <div class="alert alert-warning">
-                No image available
-            </div>
-        }
-    </div>
-
-    <!-- Course Info -->
-    <div class="mb-3">
-        <h2>@Model.Title</h2>
-        <p>@Model.Description</p>
-
-        <ul class="list-group mb-3">
-            <li class="list-group-item"><strong>Category:</strong> @Model.CategoryName</li>
-            <li class="list-group-item"><strong>Instructor:</strong> @Model.InstructorName</li>
-            <li class="list-group-item"><strong>Price:</strong> @Model.Price</li>
-            <li class="list-group-item"><strong>Level:</strong> @Model.Level</li>
-            <li class="list-group-item"><strong>Students:</strong> @Model.StudentsCount</li>
-            <li class="list-group-item"><strong>Sections:</strong> @Model.SectionsCount</li>
-        </ul>
-    </div>
-
-    <hr />
-
-    <!-- Enrollment Section -->
-    <div>
-        @if (Model.IsEnrolled)
-        {
-            <button class="btn btn-secondary" disabled>
-                Already Enrolled
-            </button>
-        }
-        else
-        {
-            <form asp-action="Enroll" method="post">
-                <input type="hidden" name="courseId" value="@Model.Id" />
-
-                <button type="submit" class="btn btn-success">
-                    Enroll Now
-                </button>
-            </form>
-        }
-    </div>
-
-    @if (User.Identity?.IsAuthenticated == true && User.IsInRole("Student"))
+<!-- Course Image -->
+<div class="mb-3">
+    @if (!string.IsNullOrEmpty(Model.ImageUrl))
     {
-        @if (Model.IsInWishlist)
-        {
-            <form asp-action="RemoveFromWishlist" method="post">
-                @Html.AntiForgeryToken()
-
-                <input type="hidden"
-                       name="courseId"
-                       value="@Model.Id" />
-
-                <button class="btn btn-outline-danger">
-                    Remove From Wishlist
-                </button>
-            </form>
-        }
-        else
-        {
-            <form asp-action="AddToWishlist" method="post">
-                @Html.AntiForgeryToken()
-
-                <input type="hidden"
-                       name="courseId"
-                       value="@Model.Id" />
-
-                <button class="btn btn-outline-primary">
-                    Add To Wishlist
-                </button>
-            </form>
-        }
+        <img src="@Model.ImageUrl"
+             alt="Course Image"
+             class="img-fluid rounded"
+             style="max-height:300px;" />
     }
-
+    else
+    {
+        <div class="alert alert-warning">
+            No image available
+        </div>
+    }
 </div>
+
+<!-- Course Info -->
+<div class="mb-3">
+    <h2>@Model.Title</h2>
+
+    <p>@Model.Description</p>
+
+    <ul class="list-group mb-3">
+        <li class="list-group-item">
+            <strong>Category:</strong> @Model.CategoryName
+        </li>
+
+        <li class="list-group-item">
+            <strong>Instructor:</strong> @Model.InstructorName
+        </li>
+
+        <li class="list-group-item">
+            <strong>Price:</strong> @Model.Price
+        </li>
+
+        <li class="list-group-item">
+            <strong>Level:</strong> @Model.Level
+        </li>
+
+        <li class="list-group-item">
+            <strong>Students:</strong> @Model.StudentsCount
+        </li>
+
+        <li class="list-group-item">
+            <strong>Sections:</strong> @Model.SectionsCount
+        </li>
+
+        <li class="list-group-item">
+            <strong>Reviews:</strong> @Model.ReviewsCount
+        </li>
+    </ul>
+</div>
+
+<hr />
+
+<!-- Enrollment -->
+@if (Model.IsEnrolled)
+{
+    <button class="btn btn-secondary mb-2" disabled>
+        Already Enrolled
+    </button>
+}
+else
+{
+    <form asp-action="Enroll" method="post" class="mb-2">
+        @Html.AntiForgeryToken()
+
+        <input type="hidden"
+               name="courseId"
+               value="@Model.Id" />
+
+        <button type="submit"
+                class="btn btn-success">
+            Enroll Now
+        </button>
+    </form>
+}
+
+<!-- Wishlist -->
+@if (User.Identity?.IsAuthenticated == true
+    && User.IsInRole("Student"))
+{
+    @if (Model.IsInWishlist)
+    {
+        <form asp-action="RemoveFromWishlist"
+              method="post"
+              class="mb-3">
+
+            @Html.AntiForgeryToken()
+
+            <input type="hidden"
+                   name="courseId"
+                   value="@Model.Id" />
+
+            <button class="btn btn-outline-danger">
+                Remove From Wishlist
+            </button>
+        </form>
+    }
+    else
+    {
+        <form asp-action="AddToWishlist"
+              method="post"
+              class="mb-3">
+
+            @Html.AntiForgeryToken()
+
+            <input type="hidden"
+                   name="courseId"
+                   value="@Model.Id" />
+
+            <button class="btn btn-outline-primary">
+                Add To Wishlist
+            </button>
+        </form>
+    }
+}
+
+<hr />
+
+<h3>Reviews (@Model.ReviewsCount)</h3>
+
+@if (User.Identity?.IsAuthenticated == true
+    && User.IsInRole("Student")
+    && Model.IsEnrolled)
+{
+    @if (!Model.HasReviewed)
+    {
+        <form asp-action="AddReview"
+              method="post"
+              class="mb-4">
+
+            @Html.AntiForgeryToken()
+
+            <input type="hidden"
+                   name="courseId"
+                   value="@Model.Id" />
+
+            <div class="mb-3">
+                <label class="form-label">
+                    Rating
+                </label>
+
+                <select name="rating"
+                        class="form-select">
+
+                    <option value="5">5 Stars</option>
+                    <option value="4">4 Stars</option>
+                    <option value="3">3 Stars</option>
+                    <option value="2">2 Stars</option>
+                    <option value="1">1 Star</option>
+
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">
+                    Comment
+                </label>
+
+                <textarea name="comment"
+                          class="form-control"
+                          rows="4"></textarea>
+            </div>
+
+            <button type="submit"
+                    class="btn btn-primary">
+                Submit Review
+            </button>
+
+        </form>
+    }
+    else
+    {
+        <div class="alert alert-info">
+            You already reviewed this course.
+        </div>
+    }
+}
+
+@if (Model.Reviews.Any())
+{
+    @foreach (var review in Model.Reviews)
+    {
+        <div class="card mb-3">
+            <div class="card-body">
+
+                <h5 class="card-title">
+                    @review.StudentName
+                </h5>
+
+                <p>
+                    <strong>Rating:</strong>
+                    @review.Rating / 5
+                </p>
+
+                @if (!string.IsNullOrWhiteSpace(review.Comment))
+                {
+                    <p>@review.Comment</p>
+                }
+
+                <small class="text-muted">
+                    @review.CreatedAt.ToString("dd/MM/yyyy")
+                </small>
+
+            </div>
+        </div>
+    }
+}
+else
+{
+    <div class="alert alert-secondary">
+        No reviews yet.
+    </div>
+}

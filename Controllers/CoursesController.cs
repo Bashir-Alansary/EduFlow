@@ -4,6 +4,7 @@ using EduFlow.Models;
 using EduFlow.Repositories.Implementations;
 using EduFlow.Repositories.Interfaces;
 using EduFlow.ViewModels.Courses;
+using EduFlow.ViewModels.Reviews;
 using EduFlow.ViewModels.Wishlist;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -21,6 +22,7 @@ namespace EduFlow.Controllers
         private readonly IWebHostEnvironment _webHostEnvironment;
         private readonly IEnrollmentRepository _enrollmentRepository;
         private readonly IWishlistRepository _wishlistRepository;
+        private readonly IReviewRepository _reviewRepository;
 
         public CoursesController(
             ICourseRepository courseRepository,
@@ -28,7 +30,8 @@ namespace EduFlow.Controllers
             UserManager<ApplicationUser> userManager,
             IWebHostEnvironment webHostEnvironment,
             IEnrollmentRepository enrollmentRepository,
-            IWishlistRepository wishlistRepository)
+            IWishlistRepository wishlistRepository,
+            IReviewRepository reviewRepository)
         {
             _courseRepository = courseRepository;
             _categoryRepository = categoryRepository;
@@ -36,6 +39,7 @@ namespace EduFlow.Controllers
             _webHostEnvironment = webHostEnvironment;
             _enrollmentRepository = enrollmentRepository;
             _wishlistRepository = wishlistRepository;
+            _reviewRepository = reviewRepository;
         }
 
         // GET: Courses (Public)
@@ -233,11 +237,13 @@ namespace EduFlow.Controllers
 
             var isEnrolled = false;
             var isInWishlist = false;
+            var hasReviewed = false;
 
             if (userId != null)
             {
                 isEnrolled = await _enrollmentRepository.IsEnrolledAsync(userId, id);
                 isInWishlist = await _wishlistRepository.IsInWishlistAsync(userId, id);
+                hasReviewed = await _reviewRepository.HasReviewedAsync(userId, id);
             }
 
             var vm = new CourseDetailsVM
@@ -248,7 +254,8 @@ namespace EduFlow.Controllers
                 Price = course.Price,
                 ImageUrl = course.ImageUrl,
                 IsInWishlist = isInWishlist,
-
+                HasReviewed = hasReviewed,
+                IsEnrolled = isEnrolled,
                 CategoryName = course.Category?.Name ?? "Unknown",
                 InstructorName = course.Instructor?.FullName ?? "Unknown",
                 InstructorBio = course.Instructor?.Bio,
@@ -256,8 +263,17 @@ namespace EduFlow.Controllers
                 SectionsCount = course.Sections?.Count ?? 0,
                 LessonsCount = course.Sections?.Sum(s => s.Lessons?.Count ?? 0) ?? 0,
                 ReviewsCount = course.Reviews?.Count ?? 0,
+                Reviews = course.Reviews
+                .Select(r => new ReviewVM
+                {
+                    StudentName = r.Student.FullName,
+                    Rating = r.Rating,
+                    Comment = r.Comment,
+                    CreatedAt = r.CreatedAt
+                })
+                .OrderByDescending(r => r.CreatedAt)
+                .ToList(),
 
-                IsEnrolled = isEnrolled
             };
 
             return View(vm);
@@ -354,6 +370,44 @@ namespace EduFlow.Controllers
             await _wishlistRepository.RemoveAllAsync(userId!);
 
             return RedirectToAction(nameof(Wishlist));
+        }
+
+        // POST: Add Review
+        [HttpPost]
+        [Authorize(Roles = Roles.Student)]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddReview( int courseId, int rating, string? comment)
+        {
+            var userId = _userManager.GetUserId(User);
+
+            if (userId == null)
+                return Unauthorized();
+
+            var isEnrolled = await _enrollmentRepository
+                .IsEnrolledAsync(userId, courseId);
+
+            if (!isEnrolled)
+                return Forbid();
+
+            var hasReviewed = await _reviewRepository
+                .HasReviewedAsync(userId, courseId);
+
+            if (hasReviewed)
+                return RedirectToAction(nameof(Details),
+                    new { id = courseId });
+
+            var review = new Review
+            {
+                StudentId = userId,
+                CourseId = courseId,
+                Rating = rating,
+                Comment = comment
+            };
+
+            await _reviewRepository.AddAsync(review);
+
+            return RedirectToAction(nameof(Details),
+                new { id = courseId });
         }
 
         // ================= Helpers =================

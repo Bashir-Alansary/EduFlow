@@ -1,4 +1,6 @@
-﻿namespace EduFlow.ViewModels.Courses
+﻿using EduFlow.ViewModels.Reviews;
+
+namespace EduFlow.ViewModels.Courses
 {
     public class CourseDetailsVM
     {
@@ -19,5 +21,7 @@
         public int ReviewsCount { get; set; }
         public bool IsEnrolled { get; set; }
         public bool IsInWishlist { get; set; }
+        public List<ReviewVM> Reviews { get; set; } = new ();
+        public bool HasReviewed { get; set; }
     }
 }
