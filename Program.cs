@@ -23,6 +23,7 @@ namespace EduFlow
             // Register repositories
             builder.Services.AddScoped<ICourseRepository, CourseRepository>();
             builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+            builder.Services.AddScoped<IEnrollmentRepository, EnrollmentRepository>();
 
 
             builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>

@@ -1,37 +1,57 @@
 ﻿@using EduFlow.ViewModels.Courses
 @model CourseDetailsVM
 
-<h1>@Model.Title</h1>
+<div class="container mt-4">
 
-@if (!string.IsNullOrEmpty(Model.ImageUrl))
-{
-    <img src="@Model.ImageUrl" width="300" />
-}
-else
-{
-    <p>No image available</p>
-}
+    <!-- Course Image -->
+    <div class="mb-3">
+        @if (!string.IsNullOrEmpty(Model.ImageUrl))
+        {
+            <img src="@Model.ImageUrl" alt="Course Image" class="img-fluid rounded" style="max-height: 300px;" />
+        }
+        else
+        {
+            <div class="alert alert-warning">
+                No image available
+            </div>
+        }
+    </div>
 
-<p>@Model.Description</p>
+    <!-- Course Info -->
+    <div class="mb-3">
+        <h2>@Model.Title</h2>
+        <p>@Model.Description</p>
 
-<p><b>Price:</b> @Model.Price</p>
+        <ul class="list-group mb-3">
+            <li class="list-group-item"><strong>Category:</strong> @Model.CategoryName</li>
+            <li class="list-group-item"><strong>Instructor:</strong> @Model.InstructorName</li>
+            <li class="list-group-item"><strong>Price:</strong> @Model.Price</li>
+            <li class="list-group-item"><strong>Level:</strong> @Model.Level</li>
+            <li class="list-group-item"><strong>Students:</strong> @Model.StudentsCount</li>
+            <li class="list-group-item"><strong>Sections:</strong> @Model.SectionsCount</li>
+        </ul>
+    </div>
 
-<p>
-    <b>Category:</b>
-    @(Model.CategoryName ?? "Uncategorized")
-</p>
+    <hr />
 
-<p>
-    <b>Instructor:</b>
-    @(Model.InstructorName ?? "Unknown")
-</p>
+    <!-- Enrollment Section -->
+    <div>
+        @if (Model.IsEnrolled)
+        {
+            <button class="btn btn-secondary" disabled>
+                Already Enrolled
+            </button>
+        }
+        else
+        {
+            <form asp-action="Enroll" method="post">
+                <input type="hidden" name="courseId" value="@Model.Id" />
 
-<hr />
+                <button type="submit" class="btn btn-success">
+                    Enroll Now
+                </button>
+            </form>
+        }
+    </div>
 
-<h3>Stats</h3>
-
-<ul>
-    <li>Sections: @Model.SectionsCount</li>
-    <li>Lessons: @Model.LessonsCount</li>
-    <li>Reviews: @Model.ReviewsCount</li>
-</ul>
+</div>

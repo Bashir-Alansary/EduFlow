@@ -1,6 +1,7 @@
 ﻿using EduFlow.Entities;
 using EduFlow.Entities.Constants;
 using EduFlow.Models;
+using EduFlow.Repositories.Implementations;
 using EduFlow.Repositories.Interfaces;
 using EduFlow.ViewModels.Courses;
 using Microsoft.AspNetCore.Authorization;
@@ -17,17 +18,20 @@ namespace EduFlow.Controllers
         private readonly ICategoryRepository _categoryRepository;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IWebHostEnvironment _webHostEnvironment;
+        private readonly IEnrollmentRepository _enrollmentRepository;
 
         public CoursesController(
             ICourseRepository courseRepository,
             ICategoryRepository categoryRepository,
             UserManager<ApplicationUser> userManager,
-            IWebHostEnvironment webHostEnvironment)
+            IWebHostEnvironment webHostEnvironment,
+            IEnrollmentRepository enrollmentRepository)
         {
             _courseRepository = courseRepository;
             _categoryRepository = categoryRepository;
             _userManager = userManager;
             _webHostEnvironment = webHostEnvironment;
+            _enrollmentRepository = enrollmentRepository;
         }
 
         // GET: Courses (Public)
@@ -219,6 +223,17 @@ namespace EduFlow.Controllers
             if (course == null)
                 return NotFound();
 
+            var userId = User.Identity?.IsAuthenticated == true
+                ? _userManager.GetUserId(User)
+                : null;
+
+            var isEnrolled = false;
+
+            if (userId != null)
+            {
+                isEnrolled = await _enrollmentRepository.IsEnrolledAsync(userId, id);
+            }
+
             var vm = new CourseDetailsVM
             {
                 Id = course.Id,
@@ -227,15 +242,44 @@ namespace EduFlow.Controllers
                 Price = course.Price,
                 ImageUrl = course.ImageUrl,
 
-                CategoryName = course.Category?.Name,
+                CategoryName = course.Category?.Name ?? "Unknown",
                 InstructorName = course.Instructor?.FullName ?? "Unknown",
+                InstructorBio = course.Instructor?.Bio,
 
                 SectionsCount = course.Sections?.Count ?? 0,
-                LessonsCount = course.Sections?.Sum(s => s.Lessons?.Count()) ?? 0,
-                ReviewsCount = course.Reviews?.Count ?? 0
+                LessonsCount = course.Sections?.Sum(s => s.Lessons?.Count ?? 0) ?? 0,
+                ReviewsCount = course.Reviews?.Count ?? 0,
+
+                IsEnrolled = isEnrolled
             };
 
             return View(vm);
+        }
+
+
+        // POST: Enroll
+        [HttpPost]
+        [Authorize(Roles = Roles.Student)]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Enroll(int courseId)
+        {
+            var userId = _userManager.GetUserId(User);
+
+            if (await _enrollmentRepository.IsEnrolledAsync(userId, courseId))
+                return RedirectToAction("Details", new { id = courseId });
+
+            var enrollment = new Enrollment
+            {
+                StudentId = userId!,
+                CourseId = courseId,
+                EnrolledAt = DateTime.Now,
+                ProgressPercentage = 0,
+                IsCompleted = false
+            };
+
+            await _enrollmentRepository.EnrollAsync(enrollment);
+
+            return RedirectToAction("Details", new { id = courseId });
         }
 
         // ================= Helpers =================

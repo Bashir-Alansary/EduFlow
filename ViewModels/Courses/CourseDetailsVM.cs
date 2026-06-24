@@ -14,8 +14,9 @@
         public string? InstructorBio { get; set; }
 
         public int StudentsCount { get; set; }
-        public int SectionsCount { get; internal set; }
-        public int? LessonsCount { get; internal set; }
-        public int ReviewsCount { get; internal set; }
+        public int SectionsCount { get; set; }
+        public int? LessonsCount { get; set; }
+        public int ReviewsCount { get; set; }
+        public bool IsEnrolled { get; set; }
     }
 }
