@@ -1,0 +1,85 @@
+﻿@using EduFlow.ViewModels.Dashboard
+@model StudentDashboardVM
+
+<h2>Student Dashboard</h2>
+
+<div class="row">
+
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body">
+                <h5>Enrolled Courses</h5>
+                <h3>@Model.EnrolledCoursesCount</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body">
+                <h5>Completed Courses</h5>
+                <h3>@Model.CompletedCoursesCount</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body">
+                <h5>Wishlist</h5>
+                <h3>@Model.WishlistCount</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body">
+                <h5>Reviews</h5>
+                <h3>@Model.ReviewsCount</h3>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<hr />
+
+<h3>My Courses</h3>
+
+<table class="table">
+
+    <thead>
+        <tr>
+            <th>Course</th>
+            <th>Progress</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+
+    <tbody>
+
+        @foreach (var course in Model.Courses)
+        {
+            <tr>
+                <td>@course.Title</td>
+
+                <td>
+                    <div class="progress">
+                        <div class="progress-bar"
+                             role="progressbar"
+                             style="width:@(course.ProgressPercentage)%">
+                            @course.ProgressPercentage%
+                        </div>
+                    </div>
+                </td>
+
+                <td>
+                    @(course.IsCompleted ? "Completed" : "In Progress")
+                </td>
+            </tr>
+        }
+
+    </tbody>
+
+</table>

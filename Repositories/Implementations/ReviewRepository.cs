@@ -36,5 +36,11 @@ namespace EduFlow.Repositories.Implementations
                 .OrderByDescending(r => r.CreatedAt)
                 .ToListAsync();
         }
+
+        public async Task<int> GetStudentReviewsCountAsync(string studentId)
+        {
+            return await _context.Reviews
+                .CountAsync(r => r.StudentId == studentId);
+        }
     }
 }

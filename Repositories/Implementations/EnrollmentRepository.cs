@@ -25,5 +25,13 @@ namespace EduFlow.Repositories.Implementations
             await _context.Enrollments.AddAsync(enrollment);
             await _context.SaveChangesAsync();
         }
+
+        public async Task<IEnumerable<Enrollment>> GetByStudentIdAsync(string studentId)
+        {
+            return await _context.Enrollments
+                .Where(e => e.StudentId == studentId)
+                .Include(e => e.Course)
+                .ToListAsync();
+        }
     }
 }

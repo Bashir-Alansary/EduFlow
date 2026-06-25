@@ -60,5 +60,11 @@ namespace EduFlow.Repositories.Implementations
 
             await _context.SaveChangesAsync();
         }
+
+        public async Task<int> GetCountAsync(string studentId)
+        {
+            return await _context.Wishlists
+                .CountAsync(w => w.StudentId == studentId);
+        }
     }
 }
