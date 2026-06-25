@@ -1,4 +1,5 @@
 ﻿using EduFlow.ViewModels.Reviews;
+using EduFlow.ViewModels.Sections;
 
 namespace EduFlow.ViewModels.Courses
 {
@@ -23,5 +24,6 @@ namespace EduFlow.ViewModels.Courses
         public bool IsInWishlist { get; set; }
         public List<ReviewVM> Reviews { get; set; } = new ();
         public bool HasReviewed { get; set; }
+        public List<SectionVM> Sections { get; set; } = new();
     }
 }

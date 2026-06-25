@@ -5,6 +5,7 @@ using EduFlow.Repositories.Implementations;
 using EduFlow.Repositories.Interfaces;
 using EduFlow.ViewModels.Courses;
 using EduFlow.ViewModels.Reviews;
+using EduFlow.ViewModels.Sections;
 using EduFlow.ViewModels.Wishlist;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -273,7 +274,16 @@ namespace EduFlow.Controllers
                 })
                 .OrderByDescending(r => r.CreatedAt)
                 .ToList(),
-
+                Sections = course.Sections
+                .OrderBy(s => s.Order)
+                .Select(s => new SectionVM
+                {
+                    Id = s.Id,
+                    Title = s.Title,
+                    Order = s.Order,
+                    LessonsCount = s.Lessons.Count
+                })
+                .ToList()
             };
 
             return View(vm);
