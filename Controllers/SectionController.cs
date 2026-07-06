@@ -86,6 +86,30 @@ namespace EduFlow.Controllers
         [HttpPost]
         [Authorize(Roles = Roles.Instructor)]
         [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(CreateSectionVM vm)
+        {
+            if (!ModelState.IsValid)
+                return View(vm);
+
+            var section = await _sectionRepository.GetByIdAsync(vm.Id);
+
+            if (section == null)
+                return NotFound();
+
+            section.Title = vm.Title;
+            section.Order = vm.Order;
+
+            _sectionRepository.Update(section);
+
+            return RedirectToAction(
+                "Details",
+                "Courses",
+                new { id = section.CourseId });
+        }
+
+        [HttpPost]
+        [Authorize(Roles = Roles.Instructor)]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
         {
             var section = await _sectionRepository.GetByIdAsync(id);
