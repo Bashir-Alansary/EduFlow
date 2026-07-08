@@ -1,0 +1,66 @@
+﻿@model EduFlow.ViewModels.Lessons.CreateLessonVM
+
+<h2>Add Lesson</h2>
+
+<form asp-action="Create" method="post">
+
+    @Html.AntiForgeryToken()
+
+    <input asp-for="SectionId" type="hidden" />
+
+    <div class="mb-3">
+        <label asp-for="Title" class="form-label"></label>
+
+        <input asp-for="Title"
+               class="form-control" />
+
+        <span asp-validation-for="Title"
+              class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Content"
+               class="form-label"></label>
+
+        <textarea asp-for="Content"
+                  rows="5"
+                  class="form-control">
+        </textarea>
+
+        <span asp-validation-for="Content"
+              class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="VideoUrl"
+               class="form-label"></label>
+
+        <input asp-for="VideoUrl"
+               class="form-control" />
+
+        <span asp-validation-for="VideoUrl"
+              class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Order"
+               class="form-label"></label>
+
+        <input asp-for="Order"
+               class="form-control" />
+
+        <span asp-validation-for="Order"
+              class="text-danger"></span>
+    </div>
+
+    <button type="submit"
+            class="btn btn-primary">
+        Save Lesson
+    </button>
+
+</form>
+
+@section Scripts
+{
+    <partial name="_ValidationScriptsPartial" />
+}

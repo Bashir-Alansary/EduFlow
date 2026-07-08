@@ -4,6 +4,7 @@ using EduFlow.Models;
 using EduFlow.Repositories.Implementations;
 using EduFlow.Repositories.Interfaces;
 using EduFlow.ViewModels.Courses;
+using EduFlow.ViewModels.Lessons;
 using EduFlow.ViewModels.Reviews;
 using EduFlow.ViewModels.Sections;
 using EduFlow.ViewModels.Wishlist;
@@ -281,9 +282,20 @@ namespace EduFlow.Controllers
                     Id = s.Id,
                     Title = s.Title,
                     Order = s.Order,
-                    LessonsCount = s.Lessons.Count
+
+                    LessonsCount = s.Lessons.Count,
+
+                    Lessons = s.Lessons
+                        .OrderBy(l => l.Order)
+                        .Select(l => new LessonVM
+                        {
+                            Id = l.Id,
+                            Title = l.Title,
+                            Order = l.Order
+                        })
+                        .ToList()
                 })
-                .ToList()
+                .ToList(),
             };
 
             return View(vm);
