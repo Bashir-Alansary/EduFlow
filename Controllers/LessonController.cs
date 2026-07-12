@@ -1,11 +1,12 @@
 ﻿using EduFlow.Entities;
 using EduFlow.Entities.Constants;
+using EduFlow.Models;
 using EduFlow.Repositories.Implementations;
 using EduFlow.Repositories.Interfaces;
 using EduFlow.ViewModels.Lessons;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
 namespace EduFlow.Controllers
 {
@@ -15,17 +16,20 @@ namespace EduFlow.Controllers
         private readonly ISectionRepository _sectionRepository;
         private readonly ILessonProgressRepository _lessonProgressRepository;
         private readonly IEnrollmentRepository _enrollmentRepository;
+        private readonly UserManager<ApplicationUser> _userManager;
 
         public LessonController(
             ILessonRepository lessonRepository,
             ISectionRepository sectionRepository,
             ILessonProgressRepository lessonProgressRepository,
-            IEnrollmentRepository enrollmentRepository)
+            IEnrollmentRepository enrollmentRepository,
+            UserManager<ApplicationUser> userManager)
         {
             _lessonRepository = lessonRepository;
             _sectionRepository = sectionRepository;
             _lessonProgressRepository = lessonProgressRepository;
             _enrollmentRepository = enrollmentRepository;
+            _userManager = userManager;
         }
 
         [Authorize(Roles = Roles.Instructor)]
@@ -162,7 +166,7 @@ namespace EduFlow.Controllers
 
             if (User.IsInRole(Roles.Student))
             {
-                var studentId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+                var studentId = _userManager.GetUserId(User);
 
                 var isEnrolled = await _enrollmentRepository.IsEnrolledAsync(
                     studentId,
@@ -176,7 +180,7 @@ namespace EduFlow.Controllers
 
             if (User.Identity!.IsAuthenticated)
             {
-                var studentId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var studentId = _userManager.GetUserId(User);
 
                 if (!string.IsNullOrEmpty(studentId))
                 {
@@ -212,7 +216,7 @@ namespace EduFlow.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Complete(int lessonId)
         {
-            var studentId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var studentId = _userManager.GetUserId(User);
 
             if (studentId == null)
                 return Unauthorized();
