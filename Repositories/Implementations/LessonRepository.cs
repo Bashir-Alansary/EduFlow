@@ -25,6 +25,8 @@ namespace EduFlow.Repositories.Implementations
         {
             return await _context.Lessons
                 .Include(l => l.Section)
+                    .ThenInclude(s => s.Course)
+                .Include(l => l.LessonProgresses)
                 .FirstOrDefaultAsync(l => l.Id == id);
         }
 

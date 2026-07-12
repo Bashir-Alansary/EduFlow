@@ -24,7 +24,7 @@
     </li>
 
     <li class="list-group-item">
-        <strong>Price:</strong> @Model.Price
+        <strong>Price:</strong> @Model.Price.ToString("0.00") $
     </li>
 
     <li class="list-group-item">
@@ -48,6 +48,35 @@
 <hr />
 
 <h3>Sections</h3>
+
+@if (User.Identity?.IsAuthenticated == true &&
+     User.IsInRole("Student"))
+{
+    <div class="card mb-4">
+
+        <div class="card-body">
+
+            <h5>Your Progress</h5>
+
+            <div class="progress mb-2">
+
+                <div class="progress-bar progress-bar-striped bg-success"
+                     role="progressbar"
+                     style="width:@Model.ProgressPercentage%">
+                    @Model.ProgressPercentage%
+                </div>
+
+            </div>
+
+            <small class="text-muted">
+                @Model.CompletedLessons /
+                @Model.TotalLessons lessons completed
+            </small>
+
+        </div>
+
+    </div>
+}
 
 <h3 class="mt-4">Course Content</h3>
 
@@ -124,14 +153,23 @@
                                 {
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
 
-                                            <a asp-controller="Lesson"
-                                               asp-action="Details"
-                                               asp-route-id="@lesson.Id"
-                                               class="text-decoration-none">
+                                            @if (User.IsInRole("Instructor") || Model.IsEnrolled)
+                                            {
+                                                <a asp-controller="Lesson"
+                                                   asp-action="Details"
+                                                   asp-route-id="@lesson.Id"
+                                                   class="text-decoration-none">
 
-                                                @lesson.Order - @lesson.Title
+                                                    <strong>@lesson.Order.</strong> @lesson.Title
 
-                                            </a>
+                                                </a>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">
+                                                    <strong>@lesson.Order.</strong> @lesson.Title
+                                                </span>
+                                            }
 
                                         @if (User.IsInRole("Instructor"))
                                         {
@@ -170,6 +208,7 @@
                                 }
 
                             </ul>
+                                
                         }
                         else
                         {
@@ -180,11 +219,11 @@
 
                             @if (User.IsInRole("Instructor"))
                             {
-                                <a asp-controller="Section"
+                                <a asp-controller="Lesson"
                                    asp-action="Create"
-                                   asp-route-courseId="@Model.Id"
-                                   class="btn btn-success mb-3">
-                                    Add Section
+                                   asp-route-sectionId="@sec.Id"
+                                   class="btn btn-success mt-3">
+                                    Add Lesson
                                 </a>
                             }
 
@@ -197,13 +236,13 @@
 
     </div>
 }
+    else
+    {
+        <div class="alert alert-info">
+            No sections yet.
+        </div>
+    }
 </div>
-else
-{
-    <div class="alert alert-info">
-        No sections yet.
-    </div>
-}
 
 @if (User.IsInRole("Instructor"))
 {
@@ -217,30 +256,34 @@ else
 
 <hr />
 
-@if (Model.IsEnrolled)
+@if (User.Identity?.IsAuthenticated == true &&
+    User.IsInRole("Student"))
 {
-    <button class="btn btn-secondary mb-3" disabled>
-        Already Enrolled
-    </button>
-}
-else
-{
-    <form asp-action="Enroll"
-          method="post"
-          class="mb-3">
+    @if (Model.IsEnrolled)
+    {
+        <div class="alert alert-success">
+            Already Enrolled
+        </div>
+    }
+    else
+    {
+        <form asp-controller="Enrollment"
+              asp-action="Enroll"
+              method="post">
 
-        @Html.AntiForgeryToken()
+            @Html.AntiForgeryToken()
 
-        <input type="hidden"
-               name="courseId"
-               value="@Model.Id" />
+            <input type="hidden"
+                   name="courseId"
+                   value="@Model.Id" />
 
-        <button type="submit"
-                class="btn btn-success">
-            Enroll Now
-        </button>
+            <button type="submit"
+                    class="btn btn-success">
+                Enroll Now
+            </button>
 
-    </form>
+        </form>
+    }
 }
 
 @if (User.Identity?.IsAuthenticated == true &&

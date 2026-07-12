@@ -1,26 +1,34 @@
 ﻿using EduFlow.Entities;
 using EduFlow.Entities.Constants;
+using EduFlow.Repositories.Implementations;
 using EduFlow.Repositories.Interfaces;
 using EduFlow.ViewModels.Lessons;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace EduFlow.Controllers
 {
-    [Authorize(Roles = Roles.Instructor)]
     public class LessonController : Controller
     {
         private readonly ILessonRepository _lessonRepository;
         private readonly ISectionRepository _sectionRepository;
+        private readonly ILessonProgressRepository _lessonProgressRepository;
+        private readonly IEnrollmentRepository _enrollmentRepository;
 
         public LessonController(
             ILessonRepository lessonRepository,
-            ISectionRepository sectionRepository)
+            ISectionRepository sectionRepository,
+            ILessonProgressRepository lessonProgressRepository,
+            IEnrollmentRepository enrollmentRepository)
         {
             _lessonRepository = lessonRepository;
             _sectionRepository = sectionRepository;
+            _lessonProgressRepository = lessonProgressRepository;
+            _enrollmentRepository = enrollmentRepository;
         }
 
+        [Authorize(Roles = Roles.Instructor)]
         [HttpGet]
         public async Task<IActionResult> Create(int sectionId)
         {
@@ -37,6 +45,7 @@ namespace EduFlow.Controllers
             return View(vm);
         }
 
+        [Authorize(Roles = Roles.Instructor)]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(CreateLessonVM vm)
@@ -66,6 +75,7 @@ namespace EduFlow.Controllers
                 new { id = section.CourseId });
         }
 
+        [Authorize(Roles = Roles.Instructor)]
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
@@ -87,6 +97,7 @@ namespace EduFlow.Controllers
             return View(vm);
         }
 
+        [Authorize(Roles = Roles.Instructor)]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(CreateLessonVM vm)
@@ -117,6 +128,7 @@ namespace EduFlow.Controllers
                 new { id = section.CourseId });
         }
 
+        [Authorize(Roles = Roles.Instructor)]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
@@ -137,6 +149,104 @@ namespace EduFlow.Controllers
                 "Details",
                 "Courses",
                 new { id = section.CourseId });
+        }
+
+        [HttpGet]
+        [Authorize]
+        public async Task<IActionResult> Details(int id)
+        {
+            var lesson = await _lessonRepository.GetByIdAsync(id);
+
+            if (lesson == null)
+                return NotFound();
+
+            if (User.IsInRole(Roles.Student))
+            {
+                var studentId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+
+                var isEnrolled = await _enrollmentRepository.IsEnrolledAsync(
+                    studentId,
+                    lesson.Section.CourseId);
+
+                if (!isEnrolled)
+                    return Forbid();
+            }
+
+            bool isCompleted = false;
+
+            if (User.Identity!.IsAuthenticated)
+            {
+                var studentId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                if (!string.IsNullOrEmpty(studentId))
+                {
+                    var progress = await _lessonProgressRepository
+                        .GetAsync(studentId, lesson.Id);
+
+                    isCompleted = progress?.IsCompleted ?? false;
+                }
+            }
+
+            var vm = new LessonDetailsVM
+            {
+                Id = lesson.Id,
+                Title = lesson.Title,
+                Content = lesson.Content,
+                VideoUrl = lesson.VideoUrl,
+                Order = lesson.Order,
+
+                SectionId = lesson.SectionId,
+                SectionTitle = lesson.Section.Title,
+
+                CourseId = lesson.Section.CourseId,
+                CourseTitle = lesson.Section.Course.Title,
+
+                IsCompleted = isCompleted
+            };
+
+            return View(vm);
+        }
+
+        [HttpPost]
+        [Authorize(Roles = Roles.Student)]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Complete(int lessonId)
+        {
+            var studentId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (studentId == null)
+                return Unauthorized();
+
+            var lesson = await _lessonRepository.GetByIdAsync(lessonId);
+
+            if (lesson == null)
+                return NotFound();
+
+            var progress = await _lessonProgressRepository.GetAsync(studentId, lessonId);
+
+            if (progress == null)
+            {
+                progress = new LessonProgress
+                {
+                    StudentId = studentId,
+                    LessonId = lessonId,
+                    ProgressPercent = 100,
+                    IsCompleted = true,
+                    LastWatchedAt = DateTime.UtcNow
+                };
+
+                await _lessonProgressRepository.AddAsync(progress);
+            }
+            else
+            {
+                progress.ProgressPercent = 100;
+                progress.IsCompleted = true;
+                progress.LastWatchedAt = DateTime.UtcNow;
+
+                _lessonProgressRepository.Update(progress);
+            }
+
+            return RedirectToAction("Details", new { id = lessonId });
         }
 
     }

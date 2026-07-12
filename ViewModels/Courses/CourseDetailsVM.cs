@@ -18,12 +18,17 @@ namespace EduFlow.ViewModels.Courses
 
         public int StudentsCount { get; set; }
         public int SectionsCount { get; set; }
-        public int? LessonsCount { get; set; }
+        public int LessonsCount { get; set; }
         public int ReviewsCount { get; set; }
         public bool IsEnrolled { get; set; }
         public bool IsInWishlist { get; set; }
         public List<ReviewVM> Reviews { get; set; } = new ();
         public bool HasReviewed { get; set; }
         public List<SectionVM> Sections { get; set; } = new();
+        public int CompletedLessons { get; set; }
+
+        public int TotalLessons { get; set; }
+
+        public int ProgressPercentage { get; set; }
     }
 }

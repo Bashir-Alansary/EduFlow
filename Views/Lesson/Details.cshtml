@@ -1,0 +1,84 @@
+﻿@using EduFlow.ViewModels.Lessons
+@model LessonDetailsVM
+
+@{
+    ViewData["Title"] = Model.Title;
+}
+
+<div class="container mt-4">
+
+    <a asp-controller="Courses"
+       asp-action="Details"
+       asp-route-id="@Model.CourseId"
+       class="btn btn-outline-secondary mb-3">
+        ← Back To Course
+    </a>
+
+    <div class="card shadow">
+
+        <div class="card-header">
+
+            <h2>@Model.Title</h2>
+
+            <small class="text-muted">
+                @Model.CourseTitle
+                >
+                @Model.SectionTitle
+            </small>
+
+        </div>
+
+        <div class="card-body">
+
+            @if (!string.IsNullOrWhiteSpace(Model.VideoUrl))
+            {
+                <div class="ratio ratio-16x9 mb-4">
+
+                    <iframe src="@Model.VideoUrl"
+                            allowfullscreen>
+                    </iframe>
+
+                </div>
+            }
+
+            <h5>Lesson Content</h5>
+
+            <p>
+                @Model.Content
+            </p>
+
+            <hr />
+
+            @if (User.Identity?.IsAuthenticated == true &&
+                 User.IsInRole("Student"))
+            {
+                @if (Model.IsCompleted)
+                {
+                    <div class="alert alert-success">
+                        ✅ You have completed this lesson.
+                    </div>
+                }
+                else
+                {
+                    <form asp-action="Complete"
+                          method="post">
+
+                        @Html.AntiForgeryToken()
+
+                        <input type="hidden"
+                               name="lessonId"
+                               value="@Model.Id" />
+
+                        <button class="btn btn-success">
+                            Mark as Completed
+                        </button>
+
+                    </form>
+                }
+            }
+
+        </div>
+
+    </div>
+
+</div>

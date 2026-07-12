@@ -25,6 +25,7 @@ namespace EduFlow.Controllers
         private readonly IEnrollmentRepository _enrollmentRepository;
         private readonly IWishlistRepository _wishlistRepository;
         private readonly IReviewRepository _reviewRepository;
+        private readonly ILessonProgressRepository _lessonProgressRepository;
 
         public CoursesController(
             ICourseRepository courseRepository,
@@ -33,7 +34,8 @@ namespace EduFlow.Controllers
             IWebHostEnvironment webHostEnvironment,
             IEnrollmentRepository enrollmentRepository,
             IWishlistRepository wishlistRepository,
-            IReviewRepository reviewRepository)
+            IReviewRepository reviewRepository,
+            ILessonProgressRepository lessonProgressRepository)
         {
             _courseRepository = courseRepository;
             _categoryRepository = categoryRepository;
@@ -42,6 +44,7 @@ namespace EduFlow.Controllers
             _enrollmentRepository = enrollmentRepository;
             _wishlistRepository = wishlistRepository;
             _reviewRepository = reviewRepository;
+            _lessonProgressRepository = lessonProgressRepository;
         }
 
         // GET: Courses (Public)
@@ -255,52 +258,72 @@ namespace EduFlow.Controllers
                 Description = course.Description,
                 Price = course.Price,
                 ImageUrl = course.ImageUrl,
+
+                IsEnrolled = isEnrolled,
                 IsInWishlist = isInWishlist,
                 HasReviewed = hasReviewed,
-                IsEnrolled = isEnrolled,
+
                 CategoryName = course.Category?.Name ?? "Unknown",
                 InstructorName = course.Instructor?.FullName ?? "Unknown",
                 InstructorBio = course.Instructor?.Bio,
 
                 SectionsCount = course.Sections?.Count ?? 0,
-                LessonsCount = course.Sections?.Sum(s => s.Lessons?.Count ?? 0) ?? 0,
+                LessonsCount = course.Sections?.Sum(s => s.Lessons.Count) ?? 0,
                 ReviewsCount = course.Reviews?.Count ?? 0,
+
                 Reviews = course.Reviews
-                .Select(r => new ReviewVM
-                {
-                    StudentName = r.Student.FullName,
-                    Rating = r.Rating,
-                    Comment = r.Comment,
-                    CreatedAt = r.CreatedAt
-                })
-                .OrderByDescending(r => r.CreatedAt)
-                .ToList(),
+                    .Select(r => new ReviewVM
+                    {
+                        StudentName = r.Student.FullName,
+                        Rating = r.Rating,
+                        Comment = r.Comment,
+                        CreatedAt = r.CreatedAt
+                    })
+                    .OrderByDescending(r => r.CreatedAt)
+                    .ToList(),
+
                 Sections = course.Sections
-                .OrderBy(s => s.Order)
-                .Select(s => new SectionVM
-                {
-                    Id = s.Id,
-                    Title = s.Title,
-                    Order = s.Order,
+                    .OrderBy(s => s.Order)
+                    .Select(s => new SectionVM
+                    {
+                        Id = s.Id,
+                        Title = s.Title,
+                        Order = s.Order,
 
-                    LessonsCount = s.Lessons.Count,
+                        LessonsCount = s.Lessons.Count,
 
-                    Lessons = s.Lessons
-                        .OrderBy(l => l.Order)
-                        .Select(l => new LessonVM
-                        {
-                            Id = l.Id,
-                            Title = l.Title,
-                            Order = l.Order
-                        })
-                        .ToList()
-                })
-                .ToList(),
+                        Lessons = s.Lessons
+                            .OrderBy(l => l.Order)
+                            .Select(l => new LessonVM
+                            {
+                                Id = l.Id,
+                                Title = l.Title,
+                                Order = l.Order
+                            })
+                            .ToList()
+                    })
+                    .ToList()
             };
+
+            // Student Progress
+            if (userId != null && User.IsInRole(Roles.Student))
+            {
+                vm.CompletedLessons =
+                    await _lessonProgressRepository
+                        .GetCompletedLessonsCountAsync(userId, course.Id);
+
+                vm.TotalLessons = vm.LessonsCount;
+
+                if (vm.TotalLessons > 0)
+                {
+                    vm.ProgressPercentage =
+                        (int)Math.Round(
+                            (double)vm.CompletedLessons * 100 / vm.TotalLessons);
+                }
+            }
 
             return View(vm);
         }
-
 
         // POST: Enroll
         [HttpPost]
