@@ -47,6 +47,11 @@ namespace EduFlow.Repositories.Implementations
         {
             return await _context.Courses
                 .Where(c => c.InstructorId == instructorId)
+                .Include(c => c.Enrollments)
+                .Include(c => c.Reviews)
+                .Include(c => c.Sections)
+                    .ThenInclude(s => s.Lessons)
+                .AsNoTracking()
                 .ToListAsync();
         }
 
