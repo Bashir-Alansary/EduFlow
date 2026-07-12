@@ -7,5 +7,7 @@ namespace EduFlow.Repositories.Interfaces
         Task<bool> IsEnrolledAsync(string studentId, int courseId);
         Task EnrollAsync(Enrollment enrollment);
         Task<IEnumerable<Enrollment>> GetByStudentIdAsync(string studentId);
+        Task<Enrollment?> GetAsync(string studentId, int courseId);
+        void Update(Enrollment enrollment);
     }
 }

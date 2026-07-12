@@ -250,6 +250,33 @@ namespace EduFlow.Controllers
                 _lessonProgressRepository.Update(progress);
             }
 
+            var course = lesson.Section.Course;
+
+            var totalLessons = course.Sections
+                .SelectMany(s => s.Lessons)
+                .Count();
+
+            var completedLessons = course.Sections
+                .SelectMany(s => s.Lessons)
+                .Count(l => l.LessonProgresses.Any(lp =>
+                    lp.StudentId == studentId &&
+                    lp.IsCompleted));
+
+            var enrollment = await _enrollmentRepository
+                .GetAsync(studentId, course.Id);
+
+            if (enrollment != null)
+            {
+                enrollment.ProgressPercentage =
+                    totalLessons == 0
+                        ? 0
+                        : (int)Math.Round((double)completedLessons * 100 / totalLessons);
+
+                enrollment.IsCompleted = completedLessons == totalLessons;
+
+                _enrollmentRepository.Update(enrollment);
+            }
+
             return RedirectToAction("Details", new { id = lessonId });
         }
 
