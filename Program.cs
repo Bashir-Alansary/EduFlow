@@ -2,6 +2,8 @@ using EduFlow.Data;
 using EduFlow.Models;
 using EduFlow.Repositories.Implementations;
 using EduFlow.Repositories.Interfaces;
+using EduFlow.Services.Implementations;
+using EduFlow.Services.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -29,6 +31,7 @@ namespace EduFlow
             builder.Services.AddScoped<ISectionRepository, SectionRepository>();
             builder.Services.AddScoped<ILessonRepository, LessonRepository>();
             builder.Services.AddScoped<ILessonProgressRepository, LessonProgressRepository>();
+            builder.Services.AddScoped<ICertificateService, CertificateService>();
 
 
             builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>

@@ -30,5 +30,6 @@ namespace EduFlow.ViewModels.Courses
         public int TotalLessons { get; set; }
 
         public int ProgressPercentage { get; set; }
+        public bool CanDownloadCertificate { get; set; }
     }
 }

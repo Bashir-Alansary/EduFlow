@@ -284,6 +284,14 @@
 
         </form>
     }
+    @if (Model.CanDownloadCertificate)
+    {
+        <a asp-action="DownloadCertificate"
+           asp-route-id="@Model.Id"
+           class="btn btn-warning">
+            🏆 Download Certificate
+        </a>
+    }
 }
 
 @if (User.Identity?.IsAuthenticated == true &&

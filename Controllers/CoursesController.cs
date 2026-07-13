@@ -3,6 +3,7 @@ using EduFlow.Entities.Constants;
 using EduFlow.Models;
 using EduFlow.Repositories.Implementations;
 using EduFlow.Repositories.Interfaces;
+using EduFlow.Services.Interfaces;
 using EduFlow.ViewModels.Courses;
 using EduFlow.ViewModels.Lessons;
 using EduFlow.ViewModels.Reviews;
@@ -26,6 +27,7 @@ namespace EduFlow.Controllers
         private readonly IWishlistRepository _wishlistRepository;
         private readonly IReviewRepository _reviewRepository;
         private readonly ILessonProgressRepository _lessonProgressRepository;
+        private readonly ICertificateService _certificateService;
 
         public CoursesController(
             ICourseRepository courseRepository,
@@ -35,7 +37,8 @@ namespace EduFlow.Controllers
             IEnrollmentRepository enrollmentRepository,
             IWishlistRepository wishlistRepository,
             IReviewRepository reviewRepository,
-            ILessonProgressRepository lessonProgressRepository)
+            ILessonProgressRepository lessonProgressRepository,
+            ICertificateService certificateService)
         {
             _courseRepository = courseRepository;
             _categoryRepository = categoryRepository;
@@ -45,6 +48,7 @@ namespace EduFlow.Controllers
             _wishlistRepository = wishlistRepository;
             _reviewRepository = reviewRepository;
             _lessonProgressRepository = lessonProgressRepository;
+            _certificateService = certificateService;
         }
 
         // GET: Courses (Public)
@@ -244,11 +248,21 @@ namespace EduFlow.Controllers
             var isInWishlist = false;
             var hasReviewed = false;
 
+            bool canDownloadCertificate = false;
+
             if (userId != null)
             {
                 isEnrolled = await _enrollmentRepository.IsEnrolledAsync(userId, id);
                 isInWishlist = await _wishlistRepository.IsInWishlistAsync(userId, id);
                 hasReviewed = await _reviewRepository.HasReviewedAsync(userId, id);
+
+                var enrollment = course.Enrollments
+                    .FirstOrDefault(e => e.StudentId == userId);
+
+                if (enrollment != null)
+                {
+                    canDownloadCertificate = enrollment.IsCompleted;
+                }
             }
 
             var vm = new CourseDetailsVM
@@ -257,6 +271,7 @@ namespace EduFlow.Controllers
                 Title = course.Title,
                 Description = course.Description,
                 Price = course.Price,
+                CanDownloadCertificate = canDownloadCertificate,
                 ImageUrl = course.ImageUrl,
 
                 IsEnrolled = isEnrolled,
@@ -453,6 +468,45 @@ namespace EduFlow.Controllers
 
             return RedirectToAction(nameof(Details),
                 new { id = courseId });
+        }
+
+        [HttpGet]
+        [Authorize(Roles = Roles.Student)]
+        public async Task<IActionResult> DownloadCertificate(int id)
+        {
+            var studentId = _userManager.GetUserId(User);
+
+            if (studentId == null)
+                return Unauthorized();
+
+            var course = await _courseRepository.GetDetailsAsync(id);
+
+            if (course == null)
+                return NotFound();
+
+            var enrollment = course.Enrollments
+                .FirstOrDefault(e => e.StudentId == studentId);
+
+            if (enrollment == null)
+                return Forbid();
+
+            if (!enrollment.IsCompleted)
+                return BadRequest("Course is not completed yet.");
+
+            var studentName = User.Identity!.Name!;
+
+            var instructorName = course.Instructor.FullName;
+
+            var pdfBytes = _certificateService.GenerateCertificate(
+                studentName,
+                course.Title,
+                instructorName,
+                enrollment.CompletedAt ?? DateTime.Now);
+
+            return File(
+                pdfBytes,
+                "application/pdf",
+                $"{course.Title}-Certificate.pdf");
         }
 
         // ================= Helpers =================

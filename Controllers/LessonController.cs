@@ -268,13 +268,20 @@ namespace EduFlow.Controllers
             if (enrollment != null)
             {
                 enrollment.ProgressPercentage =
-                    totalLessons == 0
-                        ? 0
-                        : (int)Math.Round((double)completedLessons * 100 / totalLessons);
+                totalLessons == 0
+                    ? 0
+                    : (int)Math.Round((double)completedLessons * 100 / totalLessons);
 
-                enrollment.IsCompleted = completedLessons == totalLessons;
+                            bool isCompleted = completedLessons == totalLessons;
 
-                _enrollmentRepository.Update(enrollment);
+                            if (isCompleted && !enrollment.IsCompleted)
+                            {
+                                enrollment.CompletedAt = DateTime.UtcNow;
+                            }
+
+                            enrollment.IsCompleted = isCompleted;
+
+                            _enrollmentRepository.Update(enrollment);
             }
 
             return RedirectToAction("Details", new { id = lessonId });

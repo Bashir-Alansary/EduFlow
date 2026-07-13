@@ -16,5 +16,6 @@ namespace EduFlow.Entities
         public int ProgressPercentage { get; set; }
 
         public bool IsCompleted { get; set; }
+        public DateTime? CompletedAt { get; set; }
     }
 }
